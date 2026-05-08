@@ -1,115 +1,113 @@
 #pragma once
-#include <windows.h>
-#include <GL/gl.h>
-#include "GL/glut.h"
+#include "Pieza.h"
+// TIPOS DE CASILLA
 
-// tipos de casilla que puede haber en el tablero
-// cada tipo se comporta y se pinta de forma diferente
+// Que tipo de casilla es segun el tablero original del Archon
 enum class TipoCasilla {
-    normal,       // casilla fija blanca o negra
-    oscilante,    // cambia de color cada cierto tiempo
-    puntoPoder    // punto de poder, da ventajas a quien la ocupa
+    NORMAL,         // Casilla estandar, sin efecto especial
+    PUNTO_DE_PODER, // Los 5 puntos especiales del tablero (centro y bordes)
+    OSCILANTE       // Cambia entre claro y oscuro a lo largo del juego
 };
 
-// estado de las casillas oscilantes
-// indica si ahora mismo favorecen a la luz o a la oscuridad
+// Estado de color actual de la casilla
+// (afecta a las ventajas de combate de cada bando)
 enum class EstadoCasilla {
-    clara,   // favorece a los alumnos EE309
-    oscura   // favorece a los profes de Automatica
+    CLARA,    // Ventaja para el bando LUZ
+    OSCURA,   // Ventaja para el bando OSCURIDAD
+    NEUTRA    // Sin ventaja para ninguno (casillas normales fijas)
 };
+
+// CLASE: Casilla
+
+// Representa una casilla del tablero 9x9.
+// El Tablero tiene una matriz de estas.
+
 
 class Casilla {
 private:
-    TipoCasilla tipo;
-    EstadoCasilla estado;
-    bool esClara;  // si es clara u oscura en el patron de ajedrez base
+    TipoCasilla tipo;       // Que tipo de casilla es
+    EstadoCasilla estado;   // Color actual
+    bool ocupada;           // Si tiene una pieza encima
+
+    // Para las casillas oscilantes: temporizador del ciclo
+    float timerOscilacion;  // Tiempo acumulado para cambiar color
+    float periodoOscilacion; // Cada cuanto cambia (en segundos)
 
 public:
-    // constructor: le decimos que tipo es y si es clara u oscura
-    Casilla(TipoCasilla tipo, bool esClara) {
-        this->tipo = tipo;
-        this->esClara = esClara;
-        this->estado = EstadoCasilla::clara;  // empieza en fase clara
+    // CONSTRUCTOR
+    Casilla()
+        : tipo(TipoCasilla::NORMAL),
+        estado(EstadoCasilla::NEUTRA),
+        ocupada(false),
+        timerOscilacion(0.0f),
+        periodoOscilacion(5.0f) // Cambia cada 5 segundos por defecto
+    {
     }
 
-    // constructor por defecto
-    Casilla() {
-        tipo = TipoCasilla::normal;
-        esClara = true;
-        estado = EstadoCasilla::clara;
+    // Constructor con parametros
+    Casilla(TipoCasilla tipo, EstadoCasilla estadoInicial, float periodo = 5.0f)
+        : tipo(tipo),
+        estado(estadoInicial),
+        ocupada(false),
+        timerOscilacion(0.0f),
+        periodoOscilacion(periodo)
+    {
     }
 
-    // cambia el estado de las casillas oscilantes
-    void cambiarEstado() {
-        if (tipo == TipoCasilla::oscilante) {
-            if (estado == EstadoCasilla::clara)
-                estado = EstadoCasilla::oscura;
-            else
-                estado = EstadoCasilla::clara;
+    // Actualiza el color de las casillas oscilantes con el tiempo
+    void actualizar(float dt) {
+        if (tipo == TipoCasilla::OSCILANTE) {
+            timerOscilacion += dt;
+            if (timerOscilacion >= periodoOscilacion) {
+                timerOscilacion = 0.0f;
+                // Alterna entre clara y oscura
+                if (estado == EstadoCasilla::CLARA) {
+                    estado = EstadoCasilla::OSCURA;
+                }
+                else {
+                    estado = EstadoCasilla::CLARA;
+                }
+            }
         }
     }
 
-    // dibuja la casilla segun su tipo y estado actual
-    void dibujar(float x, float y, float tam) {
-        if (tipo == TipoCasilla::oscilante) {
-            // las casillas oscilantes cambian entre azul claro y azul oscuro
-            if (estado == EstadoCasilla::clara) {
-                if (esClara)
-                    glColor3f(0.5f, 0.5f, 1.0f);   // azul claro
-                else
-                    glColor3f(0.3f, 0.3f, 0.8f);   // azul medio
+    // Devuelve el bonus de curacion segun el bando que este en la casilla
+    // Los puntos de poder curan mas rapido, y el color propio tambien ayuda
+    float getBonusCuracion(Bando bandoPieza) const {
+        float bonus = 0.0f;
+
+        if (tipo == TipoCasilla::PUNTO_DE_PODER) {
+            bonus += 2.0f; // Curacion doble en puntos de poder
+        }
+
+        // Casilla del color propio da ventaja adicional
+        if (bandoPieza == Bando::LUZ && estado == EstadoCasilla::CLARA) {
+            bonus += 1.0f;
+        }
+        else if (bandoPieza == Bando::OSCURIDAD && estado == EstadoCasilla::OSCURA) {
+            bonus += 1.0f;
+        }
+
+        return bonus;
+    }
+
+    TipoCasilla getTipo() const { return tipo; }
+    EstadoCasilla getEstado() const { return estado; }
+    bool getOcupada() const { return ocupada; }
+    void setOcupada(bool ocu) { ocupada = ocu; }
+    void setEstado(EstadoCasilla nuevoEstado) { estado = nuevoEstado; }
+    void setTipo(TipoCasilla nuevoTipo) { tipo = nuevoTipo; }
+
+    // Fuerza el cambio de estado (para el hechizo Shift Time del lider)
+    void forzarCambioColor() {
+        if (tipo == TipoCasilla::OSCILANTE) {
+            if (estado == EstadoCasilla::CLARA) {
+                estado = EstadoCasilla::OSCURA;
             }
             else {
-                if (esClara)
-                    glColor3f(0.2f, 0.2f, 0.7f);   // azul oscuro
-                else
-                    glColor3f(0.1f, 0.1f, 0.5f);   // azul muy oscuro
+                estado = EstadoCasilla::CLARA;
             }
+            timerOscilacion = 0.0f; // Reinicia el timer
         }
-        else {
-            // casillas normales y puntos de poder son blancas o negras
-            if (esClara)
-                glColor3f(1.0f, 1.0f, 1.0f);  // blanco
-            else
-                glColor3f(0.0f, 0.0f, 0.0f);  // negro
-        }
-
-        // dibujamos el cuadrado de la casilla
-        glBegin(GL_QUADS);
-        glVertex2f(x, y);
-        glVertex2f(x + tam, y);
-        glVertex2f(x + tam, y + tam);
-        glVertex2f(x, y + tam);
-        glEnd();
-
-        // si es punto de poder dibujamos una cruz dorada encima
-        if (tipo == TipoCasilla::puntoPoder)
-            dibujarCruz(x, y, tam);
-    }
-
-    TipoCasilla getTipo() { return tipo; }
-    EstadoCasilla getEstado() { return estado; }
-
-private:
-    // dibuja la cruz dorada de los puntos de poder
-    void dibujarCruz(float x, float y, float tam) {
-        glColor3f(1.0f, 0.8f, 0.0f);  // amarillo dorado
-        float cx = x + tam / 2;
-        float cy = y + tam / 2;
-        float t = tam * 0.25f;
-
-        glBegin(GL_QUADS);
-        glVertex2f(cx - t, cy - 4);
-        glVertex2f(cx + t, cy - 4);
-        glVertex2f(cx + t, cy + 4);
-        glVertex2f(cx - t, cy + 4);
-        glEnd();
-
-        glBegin(GL_QUADS);
-        glVertex2f(cx - 4, cy - t);
-        glVertex2f(cx + 4, cy - t);
-        glVertex2f(cx + 4, cy + t);
-        glVertex2f(cx - 4, cy + t);
-        glEnd();
     }
 };
