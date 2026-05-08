@@ -81,8 +81,8 @@
     <LibraryPath>$(SolutionDir)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)$(Configuration)\bin</OutDir>
-    <IntDir>tmp\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>.\lib</OutDir>
+    <IntDir>.\lib\GL</IntDir>
     <LibraryPath>$(SolutionDir)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
