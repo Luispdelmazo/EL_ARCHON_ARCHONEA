@@ -1,8 +1,7 @@
-#define USE_ETSIDI
+/*#define USE_ETSIDI
 #include "lib/ETSIDI.h"
 #include "lib/GL/glut.h"
-#include "src/Alumnos.h"
-#include "src/Profesores.h"
+
 
 using namespace ETSIDI;
 
@@ -145,4 +144,4 @@ int main(int argc, char** argv) {
     glutTimerFunc(100, timer, 0);
     glutMainLoop();
     return 0;
-}
+}*/

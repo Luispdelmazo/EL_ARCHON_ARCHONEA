@@ -18,6 +18,9 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ARCHON_PANCHON.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -158,51 +161,6 @@
       <AdditionalDependencies>freeglut.lib ;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="ARCHON_PACHON.cpp" />
-    <ClCompile Include="src\Alumnos.cpp" />
-    <ClCompile Include="src\Ausente.cpp" />
-    <ClCompile Include="src\Basil.cpp" />
-    <ClCompile Include="src\Delegado.cpp" />
-    <ClCompile Include="src\Giuseppe.cpp" />
-    <ClCompile Include="src\HectorM.cpp" />
-    <ClCompile Include="src\Humilde.cpp" />
-    <ClCompile Include="src\Imanol.cpp" />
-    <ClCompile Include="src\Mago.cpp" />
-    <ClCompile Include="src\MiguelH.cpp" />
-    <ClCompile Include="src\Nocturno.cpp" />
-    <ClCompile Include="src\Ocupado.cpp" />
-    <ClCompile Include="src\Oscar.cpp" />
-    <ClCompile Include="src\Pieza.cpp" />
-    <ClCompile Include="src\Platero.cpp" />
-    <ClCompile Include="src\Profesores.cpp" />
-    <ClCompile Include="src\SanSegundo.cpp" />
-    <ClCompile Include="src\Todo10.cpp" />
-    <ClCompile Include="src\Veterano.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\Alumnos.h" />
-    <ClInclude Include="src\Ausente.h" />
-    <ClInclude Include="src\Basil.h" />
-    <ClInclude Include="src\Color.h" />
-    <ClInclude Include="src\Delegado.h" />
-    <ClInclude Include="src\Giuseppe.h" />
-    <ClInclude Include="src\HectorM.h" />
-    <ClInclude Include="src\Humilde.h" />
-    <ClInclude Include="src\Imanol.h" />
-    <ClInclude Include="src\Mago.h" />
-    <ClInclude Include="src\MiguelH.h" />
-    <ClInclude Include="src\Nocturno.h" />
-    <ClInclude Include="src\Ocupado.h" />
-    <ClInclude Include="src\Oscar.h" />
-    <ClInclude Include="src\Pieza.h" />
-    <ClInclude Include="src\Platero.h" />
-    <ClInclude Include="src\Profesores.h" />
-    <ClInclude Include="src\SanSegundo.h" />
-    <ClInclude Include="src\Todo10.h" />
-    <ClInclude Include="src\Vector2D.h" />
-    <ClInclude Include="src\Veterano.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
