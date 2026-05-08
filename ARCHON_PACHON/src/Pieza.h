@@ -11,25 +11,11 @@ class Pieza
 	int vida;
 	Movimiento movimiento;
 	int desplazamiento;
+	enum class Equipo { Alumnos , Profesores } equipo;// Luz , Oscuridad
 
 public:
-	friend class Humilde;
-	friend class Ausente;
-	friend class Ocupado;
-	friend class Nocturno;
-	friend class Mago;
-	friend class Veterano;
-	friend class Todo10;
-	friend class Delegado;
-	friend class Imanol;
-	friend class Giuseppe;
-	friend class SanSegundo;
-	friend class Oscar;
-	friend class HectorM;
-	friend class Basil;
-	friend class Platero;
-	friend class MiguelH;
 	Pieza(const Vector2D& pos, const Color& col, const int salud, const Movimiento& mov, const int desp);
-
+	void dibuja();
+	void movimientos_posibles();
 };
 

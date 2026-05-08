@@ -1,8 +1,7 @@
 #define USE_ETSIDI
 #include "lib/ETSIDI.h"
 #include "lib/GL/glut.h"
-#include "src/Alumnos.h"
-#include "src/Profesores.h"
+#include "Pieza.h"
 
 using namespace ETSIDI;
 
@@ -11,11 +10,10 @@ const int FILAS = 9;
 const int COLS = 9;
 const int MARGEN = 50;
 
-Alumnos alumnos;
-Profesores profesores;
-
 int tiempoOscilacion = 0;
 bool faseClaraOscura = true;
+
+Pieza pieza({ 4,0 }, { 150,150,150 }, 100, Movimiento::volador, 3);
 
 bool casillaOscila[FILAS][COLS] = {
     {0,0,0,1,1,1,0,0,0},
@@ -109,8 +107,7 @@ void display() {
         0, 1, 0);         // vector "arriba"
 
     dibujarTablero();
-    alumnos.dibuja();
-    profesores.dibuja();
+    pieza.movimientos_posibles();
     glutSwapBuffers();
 }
 
