@@ -13,7 +13,7 @@ const int MARGEN = 50;
 int tiempoOscilacion = 0;
 bool faseClaraOscura = true;
 
-Pieza pieza({ 4,0 }, { 150,150,150 }, 100, Movimiento::volador, 3);
+Pieza pieza({ 4,0 }, Equipo::Alumnos, Movimiento::volador, 3, 100);
 
 bool casillaOscila[FILAS][COLS] = {
     {0,0,0,1,1,1,0,0,0},
@@ -108,6 +108,7 @@ void display() {
 
     dibujarTablero();
     pieza.movimientos_posibles();
+    pieza.dibuja();
     glutSwapBuffers();
 }
 

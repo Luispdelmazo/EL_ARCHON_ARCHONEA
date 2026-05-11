@@ -3,6 +3,7 @@
 #include "Color.h"
 
 enum class Movimiento { terrestre, volador, teletransporte };
+enum class Equipo { Alumnos, Profesores };// Luz , Oscuridad
 
 class Pieza
 {
@@ -11,11 +12,12 @@ class Pieza
 	int vida;
 	Movimiento movimiento;
 	int desplazamiento;
-	enum class Equipo { Alumnos , Profesores } equipo;// Luz , Oscuridad
+	Equipo equipo;
 
 public:
-	Pieza(const Vector2D& pos, const Color& col, const int salud, const Movimiento& mov, const int desp);
+	Pieza(const Vector2D& pos, const Equipo& equip, const Movimiento& mov=Movimiento::terrestre, const int desp=3, const int salud = 100);
 	void dibuja();
 	void movimientos_posibles();
+	void colorea();
 };
 

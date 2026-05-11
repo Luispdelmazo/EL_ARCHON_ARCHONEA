@@ -1,15 +1,24 @@
 #include "Pieza.h"
 
-Pieza::Pieza(const Vector2D& pos, const Color& col, const int salud, const Movimiento& mov, const int desp) {
-	posicion = pos;
-	color = col;
-	vida = salud;
-	movimiento = mov;
-	desplazamiento = desp;
+Pieza::Pieza(const Vector2D& pos, const Equipo& equip, const Movimiento& mov, const int desp, const int salud){
+		posicion = pos;
+		equipo = equip;
+		vida = salud;
+		movimiento = mov;
+		desplazamiento = desp;
+
 }
 
+void Pieza::colorea() {
+	if (equipo == Equipo::Alumnos) color = { 255,255,255 };
+	if (equipo == Equipo::Profesores) color = { 0,0,0 };
+}
 void Pieza::dibuja() {
-
+	glColor3ub(color.r, color.g, color.b);
+	glPushMatrix();
+	glTranslated(posicion.x*60+80, posicion.y*60+80, 0);
+	glutSolidSphere(10, 20, 20);
+	glPopMatrix();
 }
 
 void Pieza::movimientos_posibles() {
