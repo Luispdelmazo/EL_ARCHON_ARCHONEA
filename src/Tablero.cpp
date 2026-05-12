@@ -1,28 +1,37 @@
 #include "Tablero.h"
 #include "ETSIDI.h"
+#include <cstdlib> // para rand()
+
+void Tablero::cambiarColorOscilantes() {
+    colorOscilanteR = (float)(rand() % 100) / 100.0f;
+    colorOscilanteG = (float)(rand() % 100) / 100.0f;
+    colorOscilanteB = (float)(rand() % 100) / 100.0f;
+}
 
 // CONSTRUCTOR
 Tablero::Tablero(float tamCasilla, float ox, float oy)
     : tamCasilla(tamCasilla), offsetX(ox), offsetY(oy)
 {
-    // Inicializar todas las casillas como vacias
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             casillas[f][c] = nullptr;
         }
     }
 
-    // Definir los 5 puntos de poder: centro y bordes
     puntosPoder[0][0] = 4; puntosPoder[0][1] = 4; // Centro
     puntosPoder[1][0] = 0; puntosPoder[1][1] = 4; // Borde superior
     puntosPoder[2][0] = 8; puntosPoder[2][1] = 4; // Borde inferior
     puntosPoder[3][0] = 4; puntosPoder[3][1] = 0; // Borde izquierdo
     puntosPoder[4][0] = 4; puntosPoder[4][1] = 8; // Borde derecho
 
+    // Color inicial aleatorio para las oscilantes
+    colorOscilanteR = (float)(rand() % 100) / 100.0f;
+    colorOscilanteG = (float)(rand() % 100) / 100.0f;
+    colorOscilanteB = (float)(rand() % 100) / 100.0f;
+
     inicializarCasillas();
 }
-
-// DESTRUCTOR
+//DESTRUCTOR
 Tablero::~Tablero() {
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
@@ -33,10 +42,8 @@ Tablero::~Tablero() {
         }
     }
 }
-
-// INICIALIZACION DE CASILLAS
+// INICIALIZAR CASILLAS
 void Tablero::inicializarCasillas() {
-    // Primero todas normales con patron ajedrez claro/oscuro
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             EstadoCasilla estadoInicial;
@@ -50,30 +57,34 @@ void Tablero::inicializarCasillas() {
         }
     }
 
-    // Marcar los 5 puntos de poder
-    for (int i = 0; i < 5; i++) {
+    /* for (int i = 0; i < 5; i++) {
         int f = puntosPoder[i][0];
         int c = puntosPoder[i][1];
-        tablero[f][c] = Casilla(TipoCasilla::PUNTO_DE_PODER, EstadoCasilla::NEUTRA);
-    }
+        // El estado sigue el patron ajedrez normal
+        EstadoCasilla estadoInicial;
+        if ((f + c) % 2 == 0) {
+            estadoInicial = EstadoCasilla::CLARA;
+        }
+        else {
+            estadoInicial = EstadoCasilla::OSCURA;
+        }
+        tablero[f][c] = Casilla(TipoCasilla::PUNTO_DE_PODER, estadoInicial);
+    }*/
 
-    // Marcar casillas oscilantes distribuidas por el tablero
-    // Correccion despues de la reunion con Miguel
     bool esOscilante[9][9] = {
-        {false,false,false,true ,true ,true ,false,false,false},
-        {false,false,true ,false,true ,false,true ,false,false},
-        {false,true ,false,false,true ,false,false,true ,false},
-        {true ,false,false,false,true ,false,false,false,true },
-        {false,true ,true ,true ,true ,true ,true ,true ,false},
-        {true ,false,false,false,true ,false,false,false,true },
-        {false,true ,false,false,true ,false,false,true ,false},
-        {false,false,true ,false,true ,false,true ,false,false},
-        {false,false,false,true ,true ,true ,false,false,false}
+    {false,false,false,true ,true ,true ,false,false,false},
+    {false,false,true ,false,true ,false,true ,false,false},
+    {false,true ,false,false,true ,false,false,true ,false},
+    {true ,false,false,false,true ,false,false,false,true },
+    {false,true ,true ,true ,true ,true ,true ,true ,false},
+    {true ,false,false,false,true ,false,false,false,true },
+    {false,true ,false,false,true ,false,false,true ,false},
+    {false,false,true ,false,true ,false,true ,false,false},
+    {false,false,false,true ,true ,true ,false,false,false}
     };
 
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
-            // No sobreescribir los puntos de poder
             if (esOscilante[f][c] && tablero[f][c].getTipo() != TipoCasilla::PUNTO_DE_PODER) {
                 EstadoCasilla estadoInicial;
                 if ((f + c) % 2 == 0) {
@@ -88,13 +99,19 @@ void Tablero::inicializarCasillas() {
     }
 }
 
-// DIBUJO
-// Miguel dijo: primero las casillas, luego las piezas
-void Tablero::dibujar() {
-    // dibujar todas las casillas
+//DIBUJAR
+// Recibe el turno actual para colorear el marco
+void Tablero::dibujar(Bando turno) {
+    // Primero el marco (cambia segun el turno)
+    dibujarMarco(turno);
+
+    // Luego las casillas
     dibujarCasillas();
-    // recorrer la matriz y dibujar cada pieza en su posicion
-    // Como dibujar() es virtual, cada personaje se dibuja a su manera
+
+    // Luego las cruces de los puntos de poder (encima de las casillas)
+    dibujarPuntosDePoder();
+
+    // Por ultimo las piezas
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             if (casillas[f][c] != nullptr && casillas[f][c]->getEstaViva()) {
@@ -104,43 +121,58 @@ void Tablero::dibujar() {
     }
 }
 
+// DIBUJAR MARCO
+// Amarillo si es turno de LUZ, morado si es de OSCURIDAD
+void Tablero::dibujarMarco(Bando turno) {
+    if (turno == Bando::LUZ) {
+        glColor3f(1.0f, 0.85f, 0.0f); // Amarillo
+    }
+    else {
+        glColor3f(0.5f, 0.0f, 0.8f);  // Morado
+    }
+
+    float margen = 0.3f;
+    float x0 = offsetX - margen;
+    float y0 = offsetY - margen;
+    float x1 = offsetX + 9.0f * tamCasilla + margen;
+    float y1 = offsetY + 9.0f * tamCasilla + margen;
+
+    glBegin(GL_QUADS);
+    glVertex3f(x0, y0, 0.0f);
+    glVertex3f(x1, y0, 0.0f);
+    glVertex3f(x1, y1, 0.0f);
+    glVertex3f(x0, y1, 0.0f);
+    glEnd();
+}
+
+// DIBUJAR CASILLAS
 void Tablero::dibujarCasillas() {
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
-            // Calcular posicion en pantalla de esta casilla
             float x = offsetX + c * tamCasilla;
             float y = offsetY + f * tamCasilla;
 
-            // Elegir color segun tipo y estado de la casilla
-            if (tablero[f][c].getTipo() == TipoCasilla::PUNTO_DE_PODER) {
-                glColor3f(1.0f, 0.85f, 0.0f); // Dorado
+            if (tablero[f][c].getTipo() == TipoCasilla::OSCILANTE) {
+                // Color aleatorio que cambia cada turno
+                glColor3f(colorOscilanteR, colorOscilanteG, colorOscilanteB);
             }
-            else if (tablero[f][c].getTipo() == TipoCasilla::OSCILANTE) {
+            else {
+                // Normales: blanco y negro
                 if (tablero[f][c].getEstado() == EstadoCasilla::CLARA) {
-                    glColor3f(0.6f, 0.4f, 0.8f); // Morado claro
+                    glColor3f(0.95f, 0.95f, 0.95f);
                 }
                 else {
-                    glColor3f(0.3f, 0.1f, 0.5f); // Morado oscuro
-                }
-            }
-            else { // NORMAL
-                if (tablero[f][c].getEstado() == EstadoCasilla::CLARA) {
-                    glColor3f(0.9f, 0.9f, 0.85f); // Beige claro (bando luz)
-                }
-                else {
-                    glColor3f(0.15f, 0.15f, 0.2f); // Gris oscuro (bando oscuridad)
+                    glColor3f(0.08f, 0.08f, 0.08f);
                 }
             }
 
-            // Dibujar el cuadrado de la casilla
             glBegin(GL_QUADS);
             glVertex3f(x, y, 0.0f);
             glVertex3f(x + tamCasilla, y, 0.0f);
             glVertex3f(x + tamCasilla, y + tamCasilla, 0.0f);
             glVertex3f(x, y + tamCasilla, 0.0f);
             glEnd();
-
-            // Borde negro fino
+            //Linea negra fina 
             glColor3f(0.0f, 0.0f, 0.0f);
             glBegin(GL_LINE_LOOP);
             glVertex3f(x, y, 0.0f);
@@ -152,8 +184,41 @@ void Tablero::dibujarCasillas() {
     }
 }
 
+
+// DIBUJAR PUNTOS DE PODER
+// Se dibuja una cruz encima de la casilla
+void Tablero::dibujarPuntosDePoder() {
+    glColor3f(0.0f, 0.8f, 0.0f); // Verde para la cruz como positivos
+
+    for (int i = 0; i < 5; i++) {
+        int f = puntosPoder[i][0];
+        int c = puntosPoder[i][1];
+
+        float x = offsetX + c * tamCasilla;
+        float y = offsetY + f * tamCasilla;
+        float cx = x + tamCasilla * 0.5f; // Centro de la casilla
+        float cy = y + tamCasilla * 0.5f;
+        float grosor = tamCasilla * 0.15f; // Grosor del brazo de la cruz
+        float largo = tamCasilla * 0.4f;  // Largo del brazo de la cruz
+
+        // Brazo horizontal
+        glBegin(GL_QUADS);
+        glVertex3f(cx - largo, cy - grosor, 0.01f);
+        glVertex3f(cx + largo, cy - grosor, 0.01f);
+        glVertex3f(cx + largo, cy + grosor, 0.01f);
+        glVertex3f(cx - largo, cy + grosor, 0.01f);
+        glEnd();
+
+        // Brazo vertical
+        glBegin(GL_QUADS);
+        glVertex3f(cx - grosor, cy - largo, 0.01f);
+        glVertex3f(cx + grosor, cy - largo, 0.01f);
+        glVertex3f(cx + grosor, cy + largo, 0.01f);
+        glVertex3f(cx - grosor, cy + largo, 0.01f);
+        glEnd();
+    }
+}
 // GESTION DE PIEZAS
-// Coloca una pieza en el tablero al iniciar la partida
 void Tablero::colocarPieza(Pieza* pieza, int fila, int col) {
     if (fila < 0 || fila >= 9 || col < 0 || col >= 9) return;
     if (casillas[fila][col] != nullptr) return;
@@ -163,8 +228,6 @@ void Tablero::colocarPieza(Pieza* pieza, int fila, int col) {
     tablero[fila][col].setOcupada(true);
 }
 
-// Mueve una pieza de una casilla a otra
-// Devuelve true si el movimiento fue valido
 bool Tablero::moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDest) {
     if (filaOrigen < 0 || filaOrigen >= 9 || colOrigen < 0 || colOrigen >= 9) return false;
     if (filaDest < 0 || filaDest >= 9 || colDest < 0 || colDest >= 9) return false;
@@ -172,13 +235,11 @@ bool Tablero::moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDes
     Pieza* pieza = casillas[filaOrigen][colOrigen];
     if (pieza == nullptr) return false;
 
-    // No puede moverse a casilla ocupada por un aliado
     Pieza* piezaDestino = casillas[filaDest][colDest];
     if (piezaDestino != nullptr && piezaDestino->getBando() == pieza->getBando()) {
         return false;
     }
 
-    // Mover la pieza
     casillas[filaOrigen][colOrigen] = nullptr;
     tablero[filaOrigen][colOrigen].setOcupada(false);
 
@@ -189,13 +250,11 @@ bool Tablero::moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDes
     return true;
 }
 
-// Comprueba si hay un enemigo en una casilla
 bool Tablero::hayEnemigo(int fila, int col, Bando bandoActual) {
     if (casillas[fila][col] == nullptr) return false;
     return casillas[fila][col]->getBando() != bandoActual;
 }
 
-// Elimina una pieza del tablero al perder un combate
 void Tablero::eliminarPieza(int fila, int col) {
     if (casillas[fila][col] != nullptr) {
         delete casillas[fila][col];
@@ -205,7 +264,6 @@ void Tablero::eliminarPieza(int fila, int col) {
 }
 
 // CONDICIONES DE VICTORIA
-// Comprueba si un bando controla los 5 puntos de poder
 bool Tablero::controlaPuntosDePoder(Bando bando) {
     for (int i = 0; i < 5; i++) {
         int f = puntosPoder[i][0];
@@ -218,7 +276,6 @@ bool Tablero::controlaPuntosDePoder(Bando bando) {
     return true;
 }
 
-// Cuenta las piezas vivas de un bando
 int Tablero::contarPiezas(Bando bando) {
     int total = 0;
     for (int f = 0; f < 9; f++) {
@@ -231,15 +288,14 @@ int Tablero::contarPiezas(Bando bando) {
     return total;
 }
 
+// ACTUALIZACION
 void Tablero::actualizar(float dt) {
-    // Actualizar casillas oscilantes
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             tablero[f][c].actualizar(dt);
         }
     }
 
-    // Curar piezas en casillas favorables
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             if (casillas[f][c] != nullptr) {
@@ -265,7 +321,6 @@ float Tablero::getTamCasilla() const { return tamCasilla; }
 float Tablero::getOffsetX() const { return offsetX; }
 float Tablero::getOffsetY() const { return offsetY; }
 
-// Convierte coordenadas de pantalla a fila/columna (para el raton)
 bool Tablero::pantallaATablero(float px, float py, int& filaOut, int& colOut) {
     colOut = (int)((px - offsetX) / tamCasilla);
     filaOut = (int)((py - offsetY) / tamCasilla);
