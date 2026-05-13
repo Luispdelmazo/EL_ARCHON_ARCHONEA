@@ -1,42 +1,29 @@
 #pragma once
 #include "Pieza.h"
 // TIPOS DE CASILLA
-
-// Que tipo de casilla es segun el tablero original del Archon
 enum class TipoCasilla {
     NORMAL,         // Casilla estandar, sin efecto especial
-    PUNTO_DE_PODER, // Los 5 puntos especiales del tablero (centro y bordes)
+    PUNTO_DE_PODER, // Los 5 puntos especiales del tablero 
     OSCILANTE       // Cambia entre claro y oscuro a lo largo del juego
 };
 
 // Estado de color actual de la casilla
-// (afecta a las ventajas de combate de cada bando)
 enum class EstadoCasilla {
     CLARA,    // Ventaja para el bando LUZ
     OSCURA,   // Ventaja para el bando OSCURIDAD
     NEUTRA    // Sin ventaja para ninguno (casillas normales fijas)
 };
-
 // CLASE: Casilla
-
-// Representa una casilla del tablero 9x9.
-// El Tablero tiene una matriz de estas.
-
-
 class Casilla {
 private:
     TipoCasilla tipo;       // Que tipo de casilla es
     EstadoCasilla estado;   // Color actual
     bool ocupada;           // Si tiene una pieza encima
-
-    // Para las casillas oscilantes: temporizador del ciclo
     float timerOscilacion;  // Tiempo acumulado para cambiar color
     float periodoOscilacion; // Cada cuanto cambia (en segundos)
-
 public:
     // CONSTRUCTOR
-    Casilla()
-        : tipo(TipoCasilla::NORMAL),
+    Casilla(): tipo(TipoCasilla::NORMAL),
         estado(EstadoCasilla::NEUTRA),
         ocupada(false),
         timerOscilacion(0.0f),
@@ -45,8 +32,7 @@ public:
     }
 
     // Constructor con parametros
-    Casilla(TipoCasilla tipo, EstadoCasilla estadoInicial, float periodo = 5.0f)
-        : tipo(tipo),
+    Casilla(TipoCasilla tipo, EstadoCasilla estadoInicial, float periodo = 5.0f): tipo(tipo),
         estado(estadoInicial),
         ocupada(false),
         timerOscilacion(0.0f),
@@ -60,7 +46,6 @@ public:
             timerOscilacion += dt;
             if (timerOscilacion >= periodoOscilacion) {
                 timerOscilacion = 0.0f;
-                // Alterna entre clara y oscura
                 if (estado == EstadoCasilla::CLARA) {
                     estado = EstadoCasilla::OSCURA;
                 }
