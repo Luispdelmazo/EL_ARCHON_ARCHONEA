@@ -1,4 +1,4 @@
-# EL ARCHON ARCHONEA 🎮
+# PACHON 🎮
 ### Trabajo de Informática Industrial - Curso 2025/2026
 ### EE309 - Departamento de Automática, UPM
 
@@ -66,8 +66,9 @@ en tiempo real cuando dos piezas se encuentran en la misma casilla.
 - [x] Proyecto creado en Visual Studio
 - [x] Librería ETSIDI configurada
 - [x] Tablero 9x9 dibujado en pantalla
-- [x] Clases base Pieza y Tablero creadas
+- [x/] Clases base Pieza y Tablero creadas
 - [ ] Piezas de cada bando implementadas
 - [ ] Movimiento en el tablero
 - [ ] Arena de combate
 - [ ] Conjuros del líder
+- [x] Menu del juego
