@@ -1,5 +1,5 @@
 #pragma once
-//esqueleto
+// esqueleto
 #include "Pieza.h"
 
 /*CLASE: Batalla

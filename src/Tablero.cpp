@@ -29,8 +29,14 @@ Tablero::Tablero(float tamCasilla, float ox, float oy)
     colorOscilanteG = (float)(rand() % 100) / 100.0f;
     colorOscilanteB = (float)(rand() % 100) / 100.0f;
 
+    // Inicializar seleccion como vacia
+    filaSeleccionada = -1;
+    colSeleccionada = -1;
+    haySeleccion = false;
+
     inicializarCasillas();
 }
+
 //DESTRUCTOR
 Tablero::~Tablero() {
     for (int f = 0; f < 9; f++) {
@@ -42,6 +48,7 @@ Tablero::~Tablero() {
         }
     }
 }
+
 // INICIALIZAR CASILLAS
 void Tablero::inicializarCasillas() {
     for (int f = 0; f < 9; f++) {
@@ -111,6 +118,9 @@ void Tablero::dibujar(Bando turno) {
     // Luego las cruces de los puntos de poder (encima de las casillas)
     dibujarPuntosDePoder();
 
+    // Las casillas validas y la pieza seleccionada (encima de todo menos piezas)
+    dibujarSeleccion();
+
     // Por ultimo las piezas
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
@@ -118,6 +128,38 @@ void Tablero::dibujar(Bando turno) {
                 casillas[f][c]->dibujar();
             }
         }
+    }
+}
+
+void Tablero::dibujarSeleccion() {
+    if (!haySeleccion) return;
+
+    // Dibujar la pieza seleccionada con un borde brillante
+    float x = offsetX + colSeleccionada * tamCasilla;
+    float y = offsetY + filaSeleccionada * tamCasilla;
+
+    glColor3f(1.0f, 1.0f, 0.0f); // Amarillo brillante
+    glLineWidth(3.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(x, y, 0.1f);
+    glVertex3f(x + tamCasilla, y, 0.1f);
+    glVertex3f(x + tamCasilla, y + tamCasilla, 0.1f);
+    glVertex3f(x, y + tamCasilla, 0.1f);
+    glEnd();
+    glLineWidth(1.0f);
+
+    // Dibujar las casillas validas en verde semitransparente
+    for (int i = 0; i < casillasValidas.size(); i++) {
+        float xv = offsetX + casillasValidas[i].col * tamCasilla;
+        float yv = offsetY + casillasValidas[i].fila * tamCasilla;
+
+        glColor3f(0.0f, 0.8f, 0.0f); // Verde
+        glBegin(GL_QUADS);
+        glVertex3f(xv + 0.05f, yv + 0.05f, 0.1f);
+        glVertex3f(xv + tamCasilla - 0.05f, yv + 0.05f, 0.1f);
+        glVertex3f(xv + tamCasilla - 0.05f, yv + tamCasilla - 0.05f, 0.1f);
+        glVertex3f(xv + 0.05f, yv + tamCasilla - 0.05f, 0.1f);
+        glEnd();
     }
 }
 
@@ -172,7 +214,8 @@ void Tablero::dibujarCasillas() {
             glVertex3f(x + tamCasilla, y + tamCasilla, 0.0f);
             glVertex3f(x, y + tamCasilla, 0.0f);
             glEnd();
-            //Linea negra fina 
+
+            //Linea negra fina
             glColor3f(0.0f, 0.0f, 0.0f);
             glBegin(GL_LINE_LOOP);
             glVertex3f(x, y, 0.0f);
@@ -183,7 +226,6 @@ void Tablero::dibujarCasillas() {
         }
     }
 }
-
 
 // DIBUJAR PUNTOS DE PODER
 // Se dibuja una cruz encima de la casilla
@@ -199,7 +241,7 @@ void Tablero::dibujarPuntosDePoder() {
         float cx = x + tamCasilla * 0.5f; // Centro de la casilla
         float cy = y + tamCasilla * 0.5f;
         float grosor = tamCasilla * 0.15f; // Grosor del brazo de la cruz
-        float largo = tamCasilla * 0.4f;  // Largo del brazo de la cruz
+        float largo = tamCasilla * 0.4f;   // Largo del brazo de la cruz
 
         // Brazo horizontal
         glBegin(GL_QUADS);
@@ -218,6 +260,7 @@ void Tablero::dibujarPuntosDePoder() {
         glEnd();
     }
 }
+
 // GESTION DE PIEZAS
 void Tablero::colocarPieza(Pieza* pieza, int fila, int col) {
     if (fila < 0 || fila >= 9 || col < 0 || col >= 9) return;
@@ -330,3 +373,55 @@ bool Tablero::pantallaATablero(float px, float py, int& filaOut, int& colOut) {
     }
     return true;
 }
+
+// SELECCION DE PIEZAS
+// Selecciona una pieza si pertenece al bando que tiene el turno
+void Tablero::seleccionarPieza(int fila, int col, Bando turno) {
+    Pieza* pieza = casillas[fila][col];
+
+    if (pieza == nullptr || pieza->getBando() != turno) return;
+
+    filaSeleccionada = fila;
+    colSeleccionada = col;
+    haySeleccion = true;
+
+    // Calcular casillas validas para esta pieza
+    bool ocupadas[9][9];
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            ocupadas[f][c] = (casillas[f][c] != nullptr);
+        }
+    }
+    casillasValidas = pieza->getCasillasValidas(ocupadas);
+}
+
+// Deselecciona la pieza actual
+void Tablero::deseleccionar() {
+    haySeleccion = false;
+    filaSeleccionada = -1;
+    colSeleccionada = -1;
+    casillasValidas.clear();
+}
+
+// Comprueba si una casilla esta entre las validas para moverse
+bool Tablero::destinoEsValido(int fila, int col) {
+    for (int i = 0; i < casillasValidas.size(); i++) {
+        if (casillasValidas[i].fila == fila && casillasValidas[i].col == col) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Mueve la pieza seleccionada al destino indicado
+bool Tablero::moverPiezaSeleccionada(int filaDest, int colDest) {
+    return moverPieza(filaSeleccionada, colSeleccionada, filaDest, colDest);
+}
+
+// Devuelve si hay alguna pieza seleccionada
+bool Tablero::tieneSeleccion() const {
+    return haySeleccion;
+}
+
+int Tablero::getFilaSeleccionada() const { return filaSeleccionada; }
+int Tablero::getColSeleccionada() const { return colSeleccionada; }
