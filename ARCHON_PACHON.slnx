@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="ARCHON_2026_G5.vcxproj" Id="c3a22828-b4f3-4bfb-8610-20abdf3d8c78" />
+  <Project Path="ARCHON_PACHON/ARCHON_PACHON.vcxproj" Id="5c40e3b7-29a8-4b3e-a712-9321cb4107a6" />
 </Solution>
