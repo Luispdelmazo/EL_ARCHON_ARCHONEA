@@ -1,0 +1,11 @@
+﻿  ARCHON_2026_G5.cpp
+  Batalla.cpp
+  Casillas.cpp
+  Juego.cpp
+  Menu.cpp
+  Proyectil.cpp
+  Ranking.cpp
+C:\Users\dandi\ARCHON_PROYECTO\ARCHON_2026_G5\src\Ranking.cpp(65,36): warning C4267: '=': conversión de 'size_t' a 'int'; posible pérdida de datos
+  Tablero.cpp
+  Generando código...
+  ARCHON_2026_G5.vcxproj -> C:\Users\dandi\ARCHON_PROYECTO\ARCHON_2026_G5\x64\Debug\ARCHON_2026_G5.exe

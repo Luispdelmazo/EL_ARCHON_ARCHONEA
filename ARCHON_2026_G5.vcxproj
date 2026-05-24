@@ -109,11 +109,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)lib</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ETSIDI.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freeglut.lib;ETSIDI.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -132,17 +134,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ARCHON_2026_G5.cpp" />
-    <ClCompile Include="Batalla.cpp" />
-    <ClCompile Include="Juego.cpp" />
-    <ClCompile Include="Tablero.cpp" />
+    <ClInclude Include="src\Ausente.h" />
+    <ClInclude Include="src\Basil.h" />
+    <ClInclude Include="src\Batalla.h" />
+    <ClInclude Include="src\Casilla.h" />
+    <ClInclude Include="src\CasillaOscilante.h" />
+    <ClInclude Include="src\Casillas.h" />
+    <ClInclude Include="src\Conjuros.h" />
+    <ClInclude Include="src\Delegado.h" />
+    <ClInclude Include="src\Giuseppe.h" />
+    <ClInclude Include="src\HectorMontes.h" />
+    <ClInclude Include="src\Humilde.h" />
+    <ClInclude Include="src\Imanol.h" />
+    <ClInclude Include="src\Juego.h" />
+    <ClInclude Include="src\Mago.h" />
+    <ClInclude Include="src\Menu.h" />
+    <ClInclude Include="src\MiguelHernando.h" />
+    <ClInclude Include="src\Nocturno.h" />
+    <ClInclude Include="src\Ocupado.h" />
+    <ClInclude Include="src\OscarC.h" />
+    <ClInclude Include="src\Pieza.h" />
+    <ClInclude Include="src\Platero.h" />
+    <ClInclude Include="src\Proyectil.h" />
+    <ClInclude Include="src\PuntoDePoder.h" />
+    <ClInclude Include="src\Ranking.h" />
+    <ClInclude Include="src\SanSegundo.h" />
+    <ClInclude Include="src\Tablero.h" />
+    <ClInclude Include="src\Todo10.h" />
+    <ClInclude Include="src\Veterano.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Batalla.h" />
-    <ClInclude Include="Casillas.h" />
-    <ClInclude Include="Juego.h" />
-    <ClInclude Include="Pieza.h" />
-    <ClInclude Include="Tablero.h" />
+    <ClCompile Include="src\ARCHON_2026_G5.cpp" />
+    <ClCompile Include="src\Batalla.cpp" />
+    <ClCompile Include="src\Casillas.cpp" />
+    <ClCompile Include="src\Juego.cpp" />
+    <ClCompile Include="src\Menu.cpp" />
+    <ClCompile Include="src\Proyectil.cpp" />
+    <ClCompile Include="src\Ranking.cpp" />
+    <ClCompile Include="src\Tablero.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

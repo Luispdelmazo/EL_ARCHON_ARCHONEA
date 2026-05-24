@@ -1,23 +1,26 @@
 #pragma once
 #include "Pieza.h"
 #include "Casillas.h"
+#include "CasillaOscilante.h"
+#include "PuntoDePoder.h"
 #include <vector>
 
 // CLASE: Tablero
-// Miguel dijo: el tablero tiene DOS matrices:
-//   1. Pieza* casillas[9][9]  -> donde esta cada pieza
-//   2. Casilla tablero[9][9]  -> que tipo es cada casilla
+// MH dijo: el tablero tiene DOS matrices:
+//   1. Pieza* casillas[9][9]- donde esta cada pieza
+//   2. Casilla* tablero[9][9] - que tipo es cada casilla (punteros para polimorfismo)
 // nullptr en la primera matriz = casilla vacia
+// Usamos punteros en la segunda para poder tener CasillaOscilante y PuntoDePoder igual que ListaEsferas usaba Esfera* para poder meter EsferaPulsante 
 
 class Tablero {
 private:
-    Pieza* casillas[9][9];      // Punteros a piezas (nullptr = vacio)
-    Casilla tablero[9][9];      // Tipos y estados de cada casilla
+    Pieza*   piezas[9][9]; // Punteros a piezas (nullptr = vacio)
+    Casilla* casillas[9][9];  // Punteros a casillas - polimorfismo como en el Pang
 
     // Parametros graficos
-    float tamCasilla;           // Tamano de cada casilla en pantalla
-    float offsetX;              // Desplazamiento X del tablero
-    float offsetY;              // Desplazamiento Y del tablero
+    float tamCasilla;
+    float offsetX;
+    float offsetY;
 
     // Posiciones de los 5 puntos de poder
     int puntosPoder[5][2];
@@ -27,23 +30,21 @@ private:
     float colorOscilanteG;
     float colorOscilanteB;
 
-    // Seleccion de piezas (privado, se gestiona con metodos)
+    // Seleccion de piezas
     int filaSeleccionada;
     int colSeleccionada;
     bool haySeleccion;
 
     // Casillas validas para moverse
-    std::vector<Coord> casillasValidas;
+    std::vector<Coord> casillasValidas;//nose como poneerlo si no
 
 public:
-    // Constructor y destructor
     Tablero(float tamCasilla = 1.0f, float ox = 0.0f, float oy = 0.0f);
     ~Tablero();
 
-    // Inicializacion
     void inicializarCasillas();
 
-    // Dibujo - implementacion en Tablero.cpp
+    // Dibujo
     void dibujar(Bando turno);
     void dibujarMarco(Bando turno);
     void dibujarCasillas();
@@ -63,23 +64,22 @@ public:
     bool destinoEsValido(int fila, int col);
     bool moverPiezaSeleccionada(int filaDest, int colDest);
     bool tieneSeleccion() const;
-    int getFilaSeleccionada() const;
-    int getColSeleccionada() const;
+    int  getFilaSeleccionada() const;
+    int  getColSeleccionada()  const;
 
     // Condiciones de victoria
     bool controlaPuntosDePoder(Bando bando);
-    int contarPiezas(Bando bando);
+    int  contarPiezas(Bando bando);
 
     // Actualizacion cada frame
     void actualizar(float dt);
 
-    // 
-    Pieza* getPieza(int fila, int col);
-    Casilla& getCasilla(int fila, int col);
-    float getTamCasilla() const;
-    float getOffsetX() const;
-    float getOffsetY() const;
+    // Getters
+    Pieza*   getPieza(int fila, int col);
+    Casilla* getCasilla(int fila, int col);
+    float    getTamCasilla() const;
+    float    getOffsetX()    const;
+    float    getOffsetY()    const;
 
-    // Convierte coordenadas de pantalla a fila/columna (para el raton)
     bool pantallaATablero(float px, float py, int& filaOut, int& colOut);
 };

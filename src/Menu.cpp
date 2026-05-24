@@ -1,97 +1,261 @@
 #include "Menu.h"
+
 Menu::Menu() {
-    opcionSeleccionada = OpcionMenu::JUGAR;
-    haSeleccionado = false;
+    opcionSeleccionada     = OpcionMenu::JUGAR;
+    dificultadSeleccionada = DificultadIA::MEDIO;
+    estadoMenu             = EstadoMenu::PRINCIPAL;
+    haSeleccionado         = false;
 }
+
 void Menu::dibujarTexto(float x, float y, std::string texto) {
     glRasterPos2f(x, y);
-    for (int i = 0; texto[i] != '\0'; i++) {
+    for (int i = 0; i < (int)texto.size(); i++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, texto[i]);
     }
 }
+
 void Menu::dibujar() {
-    if (viendoRanking) { dibujarRanking();return;}
-    glColor3f(0.05f, 0.05f, 0.1f);//plantilla pang fondo oscuro
+    if (estadoMenu == EstadoMenu::PRINCIPAL) {
+        dibujarMenuPrincipal();
+    } else if (estadoMenu == EstadoMenu::NIVEL) {
+        dibujarSeleccionNivel();
+    }
+    else if (estadoMenu == EstadoMenu::INSTRUCCIONES) {
+        dibujarInstrucciones();
+    }
+}
+
+void Menu::dibujarMenuPrincipal() {
+    // Fondo oscuro - plantilla pang
+    glColor3f(0.05f, 0.05f, 0.1f);
     glBegin(GL_QUADS);
-    glVertex3f(-5.0f, -5.0f, 0.0f);
-    glVertex3f(5.0f, -5.0f, 0.0f);
-    glVertex3f(5.0f, 5.0f, 0.0f);
-    glVertex3f(-5.0f, 5.0f, 0.0f);
+    glVertex3f(-5.0f, -5.0f, -0.1f);
+    glVertex3f( 5.0f, -5.0f, -0.1f);
+    glVertex3f( 5.0f,  5.0f, -0.1f);
+    glVertex3f(-5.0f,  5.0f, -0.1f);
     glEnd();
-    glColor3f(1.0f, 0.85f, 0.0f); 
-    dibujarTexto(-1.5f, 3.0f, "PACHON");//titulo
+
+    // Titulo
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-1.5f, 3.0f, "PACHON");
+
     glColor3f(0.8f, 0.8f, 0.8f);
     dibujarTexto(-2.0f, 2.2f, "EE309 vs Automatica UPM");
+
+    // Linea separadora
     glColor3f(0.5f, 0.0f, 0.8f);
     glBegin(GL_LINES);
     glVertex3f(-3.0f, 1.8f, 0.0f);
-    glVertex3f(3.0f, 1.8f, 0.0f);
+    glVertex3f( 3.0f, 1.8f, 0.0f);
     glEnd();
+
+    // JUGAR
     if (opcionSeleccionada == OpcionMenu::JUGAR) {
-        glColor3f(1.0f, 0.85f, 0.0f); 
-    }else {
-        glColor3f(1.0f, 1.0f, 1.0f);  
+        glColor3f(1.0f, 0.85f, 0.0f);
+    } else {
+        glColor3f(1.0f, 1.0f, 1.0f);
     }
     dibujarTexto(-0.5f, 1.0f, "JUGAR");
 
+    // RANKING
     if (opcionSeleccionada == OpcionMenu::RANKING) {
         glColor3f(1.0f, 0.85f, 0.0f);
-    }else {
+    } else {
         glColor3f(1.0f, 1.0f, 1.0f);
     }
-    dibujarTexto(-0.7f, -0.5f, "RANKING");
-    
+    dibujarTexto(-0.7f, 0.0f, "RANKING");
+
+    // INSTRUCCIONES
+    if (opcionSeleccionada == OpcionMenu::INSTRUCCIONES) {
+        glColor3f(1.0f, 0.85f, 0.0f);
+    } else {
+        glColor3f(1.0f, 1.0f, 1.0f);
+    }
+    dibujarTexto(-1.2f, -1.0f, "INSTRUCCIONES");
+
+    // SALIR
     if (opcionSeleccionada == OpcionMenu::SALIR) {
         glColor3f(1.0f, 0.85f, 0.0f);
-    }else {
+    } else {
         glColor3f(1.0f, 1.0f, 1.0f);
     }
     dibujarTexto(-0.5f, -2.0f, "SALIR");
+
     glColor3f(0.5f, 0.5f, 0.5f);
-    dibujarTexto(-3.5f, -4.0f, "Haz clic en una opcion o usa ENTER");//instrucciones
+    dibujarTexto(-3.5f, -4.5f, "Haz clic en una opcion o usa ENTER");
 }
-void Menu::dibujarRanking() {
-    glColor3f(0.05f, 0.05f, 0.1f);//colores y codigo de las practicas de informatica
+
+void Menu::dibujarSeleccionNivel() {
+    glColor3f(0.05f, 0.05f, 0.1f);
     glBegin(GL_QUADS);
     glVertex3f(-5.0f, -5.0f, 0.0f);
-    glVertex3f(5.0f, -5.0f, 0.0f);
-    glVertex3f(5.0f, 5.0f, 0.0f);
-    glVertex3f(-5.0f, 5.0f, 0.0f);
-    glEnd();
+    glVertex3f( 5.0f, -5.0f, 0.0f);
+    glVertex3f( 5.0f,  5.0f, 0.0f);
+    glVertex3f(-5.0f,  5.0f, 0.0f);
+    //glEnd();
+
     glColor3f(1.0f, 0.85f, 0.0f);
-    dibujarTexto(-1.0f, 3.5f, "RANKING");
+    dibujarTexto(-2.0f, 3.0f, "SELECCIONA NIVEL");
+
     glColor3f(0.5f, 0.0f, 0.8f);
     glBegin(GL_LINES);
-    glVertex3f(-3.0f, 3.0f, 0.0f);
-    glVertex3f(3.0f, 3.0f, 0.0f);
+    glVertex3f(-3.0f, 2.5f, 0.0f);
+    glVertex3f( 3.0f, 2.5f, 0.0f);
     glEnd();
-    glColor3f(0.8f, 0.8f, 0.8f);
-    dibujarTexto(-2.5f, 1.0f, "No hay partidas guardadas aun");// Mensaje provisional hasta implementar fichero
+
+    // FACIL
+    if (dificultadSeleccionada == DificultadIA::FACIL) {
+        glColor3f(0.0f, 1.0f, 0.0f);
+    } else {
+        glColor3f(0.6f, 0.6f, 0.6f);
+    }
+    dibujarTexto(-0.5f, 1.2f, "FACIL");
+    glColor3f(0.4f, 0.4f, 0.4f);
+    dibujarTexto(-2.5f, 0.6f, "La IA se mueve lento y ataca poco");
+
+    // MEDIO
+    if (dificultadSeleccionada == DificultadIA::MEDIO) {
+        glColor3f(1.0f, 0.85f, 0.0f);
+    } else {
+        glColor3f(0.6f, 0.6f, 0.6f);
+    }
+    dibujarTexto(-0.5f, -0.2f, "MEDIO");
+    glColor3f(0.4f, 0.4f, 0.4f);
+    dibujarTexto(-2.5f, -0.8f, "Comportamiento equilibrado");
+
+    // DIFICIL
+    if (dificultadSeleccionada == DificultadIA::DIFICIL) {
+        glColor3f(1.0f, 0.2f, 0.2f);
+    } else {
+        glColor3f(0.6f, 0.6f, 0.6f);
+    }
+    dibujarTexto(-0.7f, -1.6f, "DIFICIL");
+    glColor3f(0.4f, 0.4f, 0.4f);
+    dibujarTexto(-2.5f, -2.2f, "La IA es rapida y muy agresiva");
+
     glColor3f(0.5f, 0.5f, 0.5f);
-    dibujarTexto(-2.0f, -3.5f, "Pulsa ESC para volver al menu");// Instruccion para volver
+    dibujarTexto(-3.5f, -3.5f, "Haz clic o usa 1 2 3 para elegir");
+    dibujarTexto(-3.5f, -4.2f, "ENTER para confirmar - ESC para volver");
+    glEnd();
 }
+
+void Menu::dibujarInstrucciones() {
+    glColor3f(0.05f, 0.05f, 0.1f);
+    glBegin(GL_QUADS);
+    glVertex3f(-5.0f, -5.0f, 0.0f);
+    glVertex3f( 5.0f, -5.0f, 0.0f);
+    glVertex3f( 5.0f,  5.0f, 0.0f);
+    glVertex3f(-5.0f,  5.0f, 0.0f);
+    //glEnd();
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-1.5f, 4.0f, "INSTRUCCIONES");
+
+    glColor3f(0.5f, 0.0f, 0.8f);
+    glBegin(GL_LINES);
+    glVertex3f(-4.0f, 3.5f, 0.0f);
+    glVertex3f( 4.0f, 3.5f, 0.0f);
+    glEnd();
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, 2.8f, "TABLERO:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, 2.2f, "Click izquierdo - seleccionar pieza");
+    dibujarTexto(-4.0f, 1.6f, "Click en circulo verde - mover pieza");
+    dibujarTexto(-4.0f, 1.0f, "ESC - volver al menu");
+
+    glColor3f(0.5f, 0.0f, 0.8f);
+    glBegin(GL_LINES);
+    glVertex3f(-4.0f, 0.6f, 0.0f);
+    glVertex3f( 4.0f, 0.6f, 0.0f);
+    glEnd();
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, 0.0f, "BATALLA:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, -0.6f, "WASD - mover tu pieza");
+    dibujarTexto(-4.0f, -1.2f, "F - atacar cuando el circulo este verde");
+    dibujarTexto(-4.0f, -1.8f, "ESC - volver al menu");
+
+    glColor3f(0.5f, 0.0f, 0.8f);
+    glBegin(GL_LINES);
+    glVertex3f(-4.0f, -2.3f, 0.0f);
+    glVertex3f( 4.0f, -2.3f, 0.0f);
+    glEnd();
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, -2.9f, "OBJETIVO:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, -3.5f, "Controla los 5 puntos de poder");
+    dibujarTexto(-4.0f, -4.1f, "o elimina todas las piezas rivales");
+
+    glColor3f(0.5f, 0.5f, 0.5f);
+    dibujarTexto(-2.0f, -4.7f, "ESC para volver al menu");
+    glEnd();
+}
+
 void Menu::gestionRaton(int boton, int estado, float glX, float glY) {
     if (boton != GLUT_LEFT_BUTTON || estado != GLUT_UP) return;
-    if (glX > -2.0f && glX < 2.0f) {
-        if (glY > 0.5f && glY < 1.5f) {        
-            opcionSeleccionada = OpcionMenu::JUGAR;// Clic en JUGAR
-            haSeleccionado = true;
-        } else if (glY > -1.0f && glY < 0.0f) {
-            opcionSeleccionada = OpcionMenu::RANKING;
-            viendoRanking = true;
-        } else if (glY > -2.5f && glY < -1.5f) { 
-            opcionSeleccionada = OpcionMenu::SALIR;
-            haSeleccionado = true;
+
+    if (estadoMenu == EstadoMenu::PRINCIPAL) {
+        if (glX > -2.0f && glX < 2.0f) {
+            if (glY > 0.5f && glY < 1.5f) {
+                opcionSeleccionada = OpcionMenu::JUGAR;
+                estadoMenu         = EstadoMenu::NIVEL;
+            } else if (glY > -0.5f && glY < 0.5f) {
+                opcionSeleccionada = OpcionMenu::RANKING;
+                haSeleccionado     = true;
+            } else if (glY > -1.5f && glY < -0.5f) {
+                opcionSeleccionada = OpcionMenu::INSTRUCCIONES;
+                estadoMenu         = EstadoMenu::INSTRUCCIONES;
+            } else if (glY > -2.5f && glY < -1.5f) {
+                opcionSeleccionada = OpcionMenu::SALIR;
+                haSeleccionado     = true;
+            }
+        }
+    } else if (estadoMenu == EstadoMenu::NIVEL) {
+        if (glY > 0.8f && glY < 1.6f) {
+            dificultadSeleccionada = DificultadIA::FACIL;
+        } else if (glY > -0.6f && glY < 0.2f) {
+            dificultadSeleccionada = DificultadIA::MEDIO;
+        } else if (glY > -2.0f && glY < -1.2f) {
+            dificultadSeleccionada = DificultadIA::DIFICIL;
         }
     }
 }
+
 void Menu::gestionTeclado(unsigned char tecla) {
-    if (viendoRanking) {
-        if (tecla == 27) { viendoRanking = false;} return;
-    } else if (tecla == 13) { // ENTER confirma
-        haSeleccionado = true;
+    if (estadoMenu == EstadoMenu::INSTRUCCIONES) {
+        if (tecla == 27) {
+            estadoMenu = EstadoMenu::PRINCIPAL;
+        }
+        return;
     }
-} 
+
+    if (estadoMenu == EstadoMenu::NIVEL) {
+        if (tecla == '1') dificultadSeleccionada = DificultadIA::FACIL;
+        if (tecla == '2') dificultadSeleccionada = DificultadIA::MEDIO;
+        if (tecla == '3') dificultadSeleccionada = DificultadIA::DIFICIL;
+        if (tecla == 13)  haSeleccionado = true;
+        if (tecla == 27)  estadoMenu = EstadoMenu::PRINCIPAL;
+        return;
+    }
+
+    // Menu principal
+    if (tecla == 13) {
+        if (opcionSeleccionada == OpcionMenu::JUGAR) {
+            estadoMenu = EstadoMenu::NIVEL;
+        } else if (opcionSeleccionada == OpcionMenu::INSTRUCCIONES) {
+            estadoMenu = EstadoMenu::INSTRUCCIONES;
+        } else {
+            haSeleccionado = true;
+        }
+    }
+    if (tecla == 27) {
+        exit(0);
+    }
+}
+
 OpcionMenu Menu::getOpcionSeleccionada() const {
     return opcionSeleccionada;
 }
