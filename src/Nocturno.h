@@ -35,8 +35,9 @@ public:
         glutSolidSphere(0.35f, 20, 20);
 
         // Punto brillante interior - efecto de brillo nocturno
+        glTranslatef(0, 0, 0.35f);
         glColor3f(0.5f, 0.5f, 1.0f);
-        glutSolidSphere(0.12f, 10, 10);
+        glutSolidSphere(0.12f, 20, 20);
 
         glPopMatrix();
     }

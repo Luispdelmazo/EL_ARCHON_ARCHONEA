@@ -37,7 +37,7 @@ public:
         if (escudoActivo) {
             glColor3f(0.8f, 0.8f, 1.0f); // Brillante cuando el escudo esta activo
         } else {
-            glColor3f(0.3f, 0.3f, 0.5f); // Apagado cuando ya lo uso
+            glColor3f(0.3f, 0.3f, 0.5f); // Apagado cuando ya lo usó
         }
         glPushMatrix();
         glTranslatef(0.0f, 0.38f, 0.0f);
