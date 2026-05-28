@@ -116,7 +116,7 @@ void Tablero::inicializarCasillas() {
 
 // DIBUJAR
 // Recibe el turno actual para colorear el marco
-void Tablero::dibujar(Bando turno) {
+/*void Tablero::dibujar(Bando turno) {
     dibujarMarco(turno);
     dibujarCasillas();
     dibujarPuntosDePoder();
@@ -130,7 +130,30 @@ void Tablero::dibujar(Bando turno) {
             }
         }
     }
+} */
+void Tablero::dibujar(Bando turno) {
+    // 1. Dibujar todos los sprites primero
+    for (int f = 0; f < 9; f++)
+        for (int c = 0; c < 9; c++)
+            if (piezas[f][c] != nullptr && piezas[f][c]->getEstaViva())
+                piezas[f][c]->dibujar();
+
+    // 2. Restaurar estado OpenGL
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-5.0, 5.0, -5.0, 5.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_LIGHTING);
+
+    // 3. Dibujar tablero encima
+    dibujarMarco(turno);
+    dibujarCasillas();
+    dibujarPuntosDePoder();
+    dibujarSeleccion();
 }
+
 
 // DIBUJAR SELECCION
 // Circulo verde donde puede ir, cruz roja donde no puede
@@ -176,7 +199,7 @@ void Tablero::dibujarSeleccion() {
                 }
                 glEnd();
             } else {
-                // CRUZ ROJA - no puede moverse aqui
+                // CRUZ ROJA  no puede moverse aqui
                 float tam = tamCasilla * 0.25f;
                 glColor3f(0.9f, 0.0f, 0.0f);
                 glLineWidth(2.0f);
@@ -298,7 +321,7 @@ void Tablero::colocarPieza(Pieza* pieza, int fila, int col) {
     casillas[fila][col]->setOcupada(true);
 }
 
-bool Tablero::moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDest) {
+/* bool Tablero::moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDest) {
     if (filaOrigen < 0 || filaOrigen >= 9 || colOrigen < 0 || colOrigen >= 9) return false;
     if (filaDest   < 0 || filaDest   >= 9 || colDest   < 0 || colDest   >= 9) return false;
 
@@ -310,12 +333,35 @@ bool Tablero::moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDes
         return false;
     }
 
-    casillas[filaOrigen][colOrigen] = nullptr;
+    piezas[filaOrigen][colOrigen] = nullptr;
     casillas[filaOrigen][colOrigen]->setOcupada(false);
 
     piezas[filaDest][colDest] = pieza;
     pieza->setPosicion(filaDest, colDest);
     casillas[filaDest][colDest]->setOcupada(true);
+
+    return true;
+} */
+bool Tablero::moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDest) {
+    if (filaOrigen < 0 || filaOrigen >= 9 || colOrigen < 0 || colOrigen >= 9) return false;
+    if (filaDest < 0 || filaDest >= 9 || colDest < 0 || colDest >= 9) return false;
+
+    Pieza* pieza = piezas[filaOrigen][colOrigen];
+    if (pieza == nullptr) return false;
+
+    Pieza* piezaDestino = piezas[filaDest][colDest];
+    if (piezaDestino != nullptr && piezaDestino->getBando() == pieza->getBando()) {
+        return false;
+    }
+
+    // Primero actualizamos el estado de las casillas
+    casillas[filaOrigen][colOrigen]->setOcupada(false);
+    casillas[filaDest][colDest]->setOcupada(true);
+
+    // Luego movemos la pieza
+    piezas[filaOrigen][colOrigen] = nullptr;
+    piezas[filaDest][colDest] = pieza;
+    pieza->setPosicion(filaDest, colDest);
 
     return true;
 }
@@ -373,16 +419,23 @@ void Tablero::actualizar(float dt) {
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             if (casillas[f][c] != nullptr && piezas[f][c] != nullptr) {
-                float bonus = casillas[f][c]->getBonusCuracion( piezas[f][c]->getBando());
+                float bonus = casillas[f][c]->getBonusCuracion(piezas[f][c]->getBando());
                 if (bonus > 0.0f) {
                     piezas[f][c]->curar((int)(bonus * dt));
                 }
             }
         }
     }
+    // Animar sprites de todas las piezas
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (piezas[f][c] != nullptr && piezas[f][c]->getEstaViva()) {
+                piezas[f][c]->loop();
+            }
+        }
+    }
 }
 
-// GETTERS
 Pieza* Tablero::getPieza(int fila, int col) {
     if (fila < 0 || fila >= 9 || col < 0 || col >= 9) return nullptr;
     return piezas[fila][col];
@@ -408,7 +461,7 @@ bool Tablero::pantallaATablero(float px, float py, int& filaOut, int& colOut) {
 }
 
 // SELECCION DE PIEZAS
-void Tablero::seleccionarPieza(int fila, int col, Bando turno) {
+/* void Tablero::seleccionarPieza(int fila, int col, Bando turno) {
     Pieza* pieza = piezas[fila][col];
     if (pieza == nullptr || pieza->getBando() != turno) return;
 
@@ -420,11 +473,36 @@ void Tablero::seleccionarPieza(int fila, int col, Bando turno) {
     bool ocupadas[9][9];
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
-            ocupadas[f][c] = (casillas[f][c] != nullptr);
+            ocupadas[f][c] = (piezas[f][c] != nullptr && piezas[f][c]->getBando() == pieza->getBando());
         }
     }
     casillasValidas = pieza->getCasillasValidas(ocupadas);
+} */
+void Tablero::seleccionarPieza(int fila, int col, Bando turno) {
+    Pieza* pieza = piezas[fila][col];
+    if (pieza == nullptr || pieza->getBando() != turno) return;
+
+    filaSeleccionada = fila;
+    colSeleccionada = col;
+    haySeleccion = true;
+
+    // Solo marcamos ocupadas las casillas con piezas del mismo bando para que getCasillasValidas sepa donde no puede ir
+    bool ocupadas[9][9] = {};
+	bool enemigas[9][9] = {};
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (piezas[f][c] != nullptr) {
+                ocupadas[f][c] = true;
+				if (piezas[f][c]->getBando() != pieza->getBando()) {
+					enemigas[f][c] = true; // Marcamos casillas con enemigos
+				}
+            }
+        }
+    }
+    casillasValidas = pieza->getCasillasValidas(ocupadas, enemigas);
 }
+
+
 
 void Tablero::deseleccionar() {
     haySeleccion     = false;

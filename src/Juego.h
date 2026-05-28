@@ -4,7 +4,7 @@
 #include "Menu.h"
 #include "Ranking.h"
 
-// Estados posibles del juego - maquina de estados igual que el Coordinador del Pang
+// estados posibles del juego - maquina de estados igual que el Coordinador del Pang
 enum class EstadoJuego {
     MENU,
     TABLERO,
@@ -22,16 +22,17 @@ private:
     EstadoJuego estadoActual;
     Bando       turnoActual;
 
-    // Para saber donde fue el combate y actuar al terminar
+    // para saber donde fue el combate y actuar al terminar
     int filaDestinoBatalla;
     int colDestinoBatalla;
-
-    // Para la pantalla de fin y el ranking
+    int filaAtacanteBatalla;  // donde estaba el atacante al iniciar la batalla
+    int colAtacanteBatalla;
+    // para la pantalla de fin y el ranking
     bool  juegoTerminado;
     Bando ganador;
     int   turnosJugados;
 
-    // Metodos privados
+    // metodos privados
     void dibujarPantallaFin();
     void dibujarTexto(float x, float y, std::string texto);
     void comprobarVictoria();
@@ -43,16 +44,13 @@ public:
     void dibujar();
     void actualizar(float dt);
     void reshape(int w, int h);
-
-    // Input
     void gestionRaton(int boton, int estado, int x, int y);
     void gestionTeclado(unsigned char tecla, int x, int y);
     void gestionTecladoSuelto(unsigned char tecla, int x, int y);
 
-    // Cambio de estado
+    //cambio de estado
     void iniciarBatalla(Pieza* atacante, Pieza* defensor);
     void terminarBatalla();
     void cambiarTurno();
-
     void convertirCoordenadas(int pixelX, int pixelY, float& glX, float& glY);
 };

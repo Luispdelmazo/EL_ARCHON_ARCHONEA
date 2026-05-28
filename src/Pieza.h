@@ -4,67 +4,58 @@
 
 
 // TIPOS ENUMERADOS
-// Bando al que pertenece la pieza
+// bando al que pertenece la pieza
 enum class Bando {
-    LUZ,        // Alumnos EE309
-    OSCURIDAD   // Profes Automatica
+    LUZ,        // alumnos EE309
+    OSCURIDAD   // profes automatica
 };
 
-// Tipo de movimiento de la pieza
+// tipo de movimiento de la pieza
 enum class TipoMovimiento {
-    TERRESTRE,      // Solo horizontal/vertical, no diagonal
-    VOLADOR,        // Libre, puede ir en diagonal
-    TELETRANSPORTE  // A cualquier casilla valida del tablero
+    TERRESTRE,      // solo horizontal/vertical, no diagonal
+    VOLADOR,        // libre, puede ir en diagonal
+    TELETRANSPORTE  // a cualquier casilla valida del tablero
 };
 
-// Coordenada en el tablero (fila, columna)
+// coordenada en el tablero (fila, columna)
 struct Coord {
     int fila;
     int col;
 
     Coord(int f = 0, int c = 0) : fila(f), col(c) {}
 
-    // Para comparar coordenadas facilmente
+    // para comparar coordenadas facilmente
     bool operator==(const Coord& otra) const {
         return fila == otra.fila && col == otra.col;
     }
 };
 
-// =============================================
+
 // CLASE BASE: Pieza
-// =============================================
 // Todos los personajes del juego heredan de esta clase.
-// Miguel dijo: los personajes SON una Pieza (herencia),
-// no CONTIENEN una Pieza (atributo).
-// =============================================
+// Mhdijo: los personajes SON una Pieza (herencia), no CONTIENEN una Pieza (atributo).
 
 class Pieza {
 protected:
-    // --- Posicion en el tablero ---
-    int fila;       // Fila actual (0-8)
-    int col;        // Columna actual (0-8)
-
-    // --- Identidad ---
-    std::string nombre;     // Nombre del personaje
+    //posicion en el tablero
+    int fila;       // fila actual (0-8)
+    int col;        // columna actual (0-8)
+    std::string nombre;     // nombre del personaje
     Bando bando;            // LUZ u OSCURIDAD
-    TipoMovimiento tipoMov; // Como se mueve
+    TipoMovimiento tipoMov; // como se mueve
 
-    // --- Estadisticas de combate ---
-    int vidaMax;        // Vida maxima
-    int vidaActual;     // Vida actual
-    int ataque;         // Dano que hace
-    int velocidad;      // Velocidad de movimiento en arena
-    int rango;          // Casillas que puede moverse en el tablero
-    int alcanceAtaque;  // Distancia de ataque en arena
+    int vidaMax;        
+    int vidaActual;     
+    int ataque;         // Daño que hace
+    int velocidad;      
+    int rango;          // casillas que puede moverse en el tablero
+    int alcanceAtaque;  // distancia de ataque en arena
 
-    // --- Estado ---
-    bool estaViva;      // Si ha sido eliminada
-    bool estaSeleccionada; // Si el jugador la ha seleccionado
+    bool estaViva;      // si ha sido eliminada
+    bool estaSeleccionada; // si el jugador la ha seleccionado
 
 public:
-    // =============================================
     // CONSTRUCTOR
-    // =============================================
     Pieza(std::string nombre, Bando bando, TipoMovimiento tipoMov,
           int fila, int col,
           int vidaMax, int ataque, int velocidad, int rango, int alcanceAtaque)
@@ -76,46 +67,44 @@ public:
           estaViva(true), estaSeleccionada(false)
     {}
 
-    // Destructor virtual (imprescindible cuando hay herencia)
+    // destructor virtual (imprescindible cuando hay herencia)
     virtual ~Pieza() {}
-
-    // =============================================
-    // METODOS VIRTUALES PUROS
-    // (cada personaje los implementa a su manera)
-    // =============================================
-
-    // Dibuja la pieza en pantalla con OpenGL
-    virtual void dibujar() = 0;
-
-    // Ejecuta la habilidad especial del personaje
+    // METODOS VIRTUALES PUROS (cada personaje los implementa a su manera)
+   
+    // dibuja la pieza en pantalla 
+    //virtual void dibujar() = 0;
+    virtual void dibujar() const = 0;
+    // ejecuta la habilidad especial del personaje
     virtual void habilidadEspecial() = 0;
 
-    // =============================================
+    
     // METODOS VIRTUALES (con implementacion base)
-    // =============================================
-
-    // Calcula las casillas validas a las que puede moverse
-    // Devuelve un vector de coordenadas validas
-    virtual std::vector<Coord> getCasillasValidas(bool tablero[9][9]) {
+   
+    // calcula las casillas validas a las que puede moverse
+    // devuelve un vector de coordenadas validas
+    virtual std::vector<Coord> getCasillasValidas(bool tablero[9][9], bool enemigas[9][9]) {
         std::vector<Coord> validas;
 
         if (tipoMov == TipoMovimiento::TELETRANSPORTE) {
-            // Puede ir a cualquier casilla libre del tablero
-            for (int f = 0; f < 9; f++) {
-                for (int c = 0; c < 9; c++) {
-                    if (!tablero[f][c]) { // Si esta libre
-                        validas.push_back(Coord(f, c));
+            // puede ir a cualquier casilla libre del tablero
+            for (int f = fila - rango; f <= fila + rango; f++) {
+                for (int c = col - rango; c <= col + rango; c++) {
+                    // que este dentro del tablero y no sea su propia casilla
+                    if (f >= 0 && f < 9 && c >= 0 && c < 9 && !(f == fila && c == col)) {
+						if (!tablero[f][c] || enemigas[f][c]) { // si esta libre u ocupada por enemigo, puede ir
+                            validas.push_back(Coord(f, c));
+                        }
                     }
                 }
             }
         }
         else if (tipoMov == TipoMovimiento::VOLADOR) {
-            // Puede moverse en cualquier direccion dentro del rango
+            // puede moverse en cualquier direccion dentro del rango
             for (int f = fila - rango; f <= fila + rango; f++) {
                 for (int c = col - rango; c <= col + rango; c++) {
-                    // Que este dentro del tablero y no sea su propia casilla
+                    // que este dentro del tablero y no sea su propia casilla
                     if (f >= 0 && f < 9 && c >= 0 && c < 9 && !(f == fila && c == col)) {
-                        if (!tablero[f][c]) { // Si esta libre
+                        if (!tablero[f][c] || enemigas[f][c]) { // si esta libre u ocupada por enemigo, puede ir
                             validas.push_back(Coord(f, c));
                         }
                     }
@@ -123,30 +112,124 @@ public:
             }
         }
         else { // TERRESTRE: solo horizontal y vertical
-            // Direcciones: arriba, abajo, izquierda, derecha
-            int df[] = { -1, 1, 0, 0 };
-            int dc[] = { 0, 0, -1, 1 };
+            // desde la posición actual, nos desplazamos dentro de las casillas en el rango rodeadas por 8 casillas aún pertenecientes al rango
+            // es decir todas aquellas que no están en el "borde" del rango
+            // comprobamos desde cada una de ellas a cuantas de las 8 contigas podemos ir
+            // la matriz revisadas evita que se guarden casillas repetidas, evitando que el vector de validas crezca innecesariamente
+            bool revisadas[9][9] = {}; // para no revisar casillas mas de una vez
+            int df[] = { -1, 1, 0, 0};
+            int dc[] = { 0, 0, -1, 1};
+            
 
-            for (int dir = 0; dir < 4; dir++) {
-                for (int paso = 1; paso <= rango; paso++) {
-                    int nuevaFila = fila + df[dir] * paso;
-                    int nuevaCol = col + dc[dir] * paso;
+			validas.push_back(Coord(fila, col));
+            for (size_t i = 0; i < validas.size(); i++) {
+                Coord c = validas[i];
+				if (tablero[c.fila][c.col] && i>0) continue; // si la casilla esta ocupada por otra pieza, no se puede pasar
+                for (int dir = 0; dir < 4; dir++) {
+            
+                     int nuevaFila = c.fila + df[dir];
+                     int nuevaCol = c.col + dc[dir];
 
-                    if (nuevaFila < 0 || nuevaFila >= 9 || nuevaCol < 0 || nuevaCol >= 9)
-                        break; // Fuera del tablero, paramos
+                     if (nuevaFila < 0 || nuevaFila >= 9 || nuevaCol < 0 || nuevaCol >= 9)
+                        continue; // fuera del tablero, paramos
 
-                    if (tablero[nuevaFila][nuevaCol])
-                        break; // Casilla ocupada, no puede pasar
+                     if (tablero[nuevaFila][nuevaCol] && !enemigas[nuevaFila][nuevaCol])
+                        continue; // casilla ocupada por aliado, no puede pasar
+					 if (nuevaFila > fila + rango || nuevaFila < fila - rango || nuevaCol > col + rango || nuevaCol < col - rango)
+				        continue; // fuera del rango, paramos
 
-                    validas.push_back(Coord(nuevaFila, nuevaCol));
+                     if (revisadas[nuevaFila][nuevaCol])
+                        continue; // ya revisamos esta casilla, no la revisamos de nuevo])
+
+                     validas.push_back(Coord(nuevaFila, nuevaCol));
+					 revisadas[nuevaFila][nuevaCol] = true; // marcamos como revisada
                 }
             }
+            validas.erase(validas.begin()); // eliminamos la casilla original, que no es valida para moverse]
+
+            /*for (auto i = fila - rango + 1; i < fila + rango; i++) {
+                for (auto j = col - rango + 1; j < col + rango; j++) {
+                    for (int dir = 0; dir < 4; dir++) {
+                        if (!tablero[i][j]) {
+                            int nuevaFila = i + df[dir];
+                            int nuevaCol = j + dc[dir];
+
+                            if (nuevaFila < 0 || nuevaFila >= 9 || nuevaCol < 0 || nuevaCol >= 9)
+                                continue; // fuera del tablero, paramos
+
+                            if (tablero[nuevaFila][nuevaCol] && !enemigas[nuevaFila][nuevaCol])
+                                continue; // casilla ocupada por aliado, no puede pasar
+
+                            if (revisadas[nuevaFila][nuevaCol])
+                                continue; // ya revisamos esta casilla, no la revisamos de nuevo])
+
+                            validas.push_back(Coord(nuevaFila, nuevaCol));
+                            revisadas[nuevaFila][nuevaCol] = true; // marcamos como revisada]
+                        }
+                    }
+                }
+            }
+            // Por último, debemos revisar si desde alguna de las casillas en la "orilla" del rango, podemos desplazarnos
+            // a alguna casilla aún no considerada como valida 
+            // Para ello debemos ir por los bordes izquierdo y derecho hacia arriba, hacia abajo y comprobando el centro
+            // y desde los bordes superior e inferior hacia izquierda y derecha
+            for (auto i = fila - rango; i <= fila + rango; i += 2 * rango) {
+                for (auto j = col - rango + 1; j < col + rango; j++) {
+                    for (int dir = 0; dir < 4; dir++) {
+                        if (!tablero[i][j]) {
+                            int nuevaFila = i + df[dir];
+                            int nuevaCol = j + dc[dir];
+
+                            if (nuevaFila < 0 || nuevaFila >= 9 || nuevaCol < 0 || nuevaCol >= 9)
+                                continue; // fuera del tablero, paramos
+
+							if (nuevaFila< fila - rango || nuevaFila > fila + rango || nuevaCol < col - rango || nuevaCol > col + rango)
+								continue; // fuera del rango, paramos
+
+                            if (tablero[nuevaFila][nuevaCol] && !enemigas[nuevaFila][nuevaCol])
+                                continue; // casilla ocupada por aliado, no puede pasar
+
+                            if (revisadas[nuevaFila][nuevaCol])
+                                continue; // ya revisamos esta casilla, no la revisamos de nuevo])
+
+
+                            validas.push_back(Coord(nuevaFila, nuevaCol));
+                            revisadas[nuevaFila][nuevaCol] = true; // marcamos como revisada]
+                        }
+                    }
+                }
+            }
+            for (auto i = fila - rango + 1; i < fila + rango; i++) {
+                for (auto j = col - rango; j <= col + rango; j += 2 * rango) {
+                    for (int dir = 0; dir < 4; dir++) {
+                        if (!tablero[i][j]) {
+                            int nuevaFila = i + df[dir];
+                            int nuevaCol = j + dc[dir];
+
+                            if (nuevaFila < 0 || nuevaFila >= 9 || nuevaCol < 0 || nuevaCol >= 9)
+                                continue; // fuera del tablero, paramos
+
+                            if (nuevaFila< fila - rango || nuevaFila > fila + rango || nuevaCol < col - rango || nuevaCol > col + rango)
+                                continue; // fuera del rango, paramos
+
+                            if (tablero[nuevaFila][nuevaCol] && !enemigas[nuevaFila][nuevaCol])
+                                continue; // casilla ocupada por aliado, no puede pasar
+
+                            if (revisadas[nuevaFila][nuevaCol])
+                                continue; // ya revisamos esta casilla, no la revisamos de nuevo])
+
+                            validas.push_back(Coord(nuevaFila, nuevaCol));
+                            revisadas[nuevaFila][nuevaCol] = true; // marcamos como revisada]
+                        }
+                    }
+                }
+            }*/
         }
 
         return validas;
     }
 
-    // Recibe dano en combate
+    // recibe daño en combate
     virtual void recibirDano(int dano) {
         vidaActual -= dano;
         if (vidaActual <= 0) {
@@ -155,17 +238,16 @@ public:
         }
     }
 
-    // Cura a la pieza (para casillas especiales y hechizos)
+    // cura a la pieza (para casillas especiales y hechizos)
     virtual void curar(int cantidad) {
         vidaActual += cantidad;
         if (vidaActual > vidaMax) {
             vidaActual = vidaMax;
         }
     }
-
-    // =============================================
-    // GETTERS
-    // =============================================
+    
+    void setAlcanceAtaque(int a) { alcanceAtaque = a; }
+    
     int getFila() const { return fila; }
     int getCol() const { return col; }
     std::string getNombre() const { return nombre; }
@@ -180,9 +262,7 @@ public:
     bool getEstaViva() const { return estaViva; }
     bool getEstaSeleccionada() const { return estaSeleccionada; }
 
-    // =============================================
-    // SETTERS
-    // =============================================
+   
     void setPosicion(int nuevaFila, int nuevaCol) {
         fila = nuevaFila;
         col = nuevaCol;
@@ -195,4 +275,5 @@ public:
     void setViva(bool viva) {
         estaViva = viva;
     }
+    virtual void loop() const {}
 };

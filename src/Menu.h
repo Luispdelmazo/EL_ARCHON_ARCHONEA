@@ -23,7 +23,7 @@ private:
     DificultadIA   dificultadSeleccionada;
     EstadoMenu     estadoMenu;
 
-    void dibujarTexto(float x, float y, std::string texto);
+    void dibujarTexto(float x, float y, float z, std::string texto);
     void dibujarMenuPrincipal();
     void dibujarSeleccionNivel();
     void dibujarInstrucciones();

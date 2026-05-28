@@ -8,13 +8,11 @@ Ranking::Ranking() {
 
 // Guarda un resultado al final de cada partida
 void Ranking::guardarResultado(std::string ganador, int turnosJugados) {
-    // Añadir al vector
     Resultado r;
     r.ganador = ganador;
     r.turnosJugados = turnosJugados;
     resultados.push_back(r);
 
-    // Guardar en fichero - app añade al final sin borrar lo anterior
     std::ofstream fichero(nombreFichero, std::ios::app);
     if (fichero.is_open()) {
         fichero << ganador << " " << turnosJugados << "\n";
@@ -40,6 +38,28 @@ void Ranking::cargarResultados() {
     }
 }
 
+// Convierte coordenadas de mundo (-5 a 5) a pixels de ventana
+void Ranking::dibujarTexto(float x, float y, std::string texto, void* fuente) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(-5.0, 5.0, -5.0, 5.0, -1.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glRasterPos2f(x, y);
+    for (int i = 0; i < (int)texto.size(); i++) {
+        glutBitmapCharacter(fuente, texto[i]);
+    }
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+}
+
 // Dibuja el ranking en pantalla
 void Ranking::dibujar() {
     // Fondo oscuro
@@ -51,45 +71,49 @@ void Ranking::dibujar() {
     glVertex3f(-5.0f, 5.0f, 0.0f);
     glEnd();
 
+    // Linea separadora
+    glColor3f(0.5f, 0.0f, 0.8f);
+    glBegin(GL_LINES);
+    glVertex3f(-3.0f, 3.5f, 0.0f);
+    glVertex3f(3.0f, 3.5f, 0.0f);
+    glEnd();
+
     // Titulo
     glColor3f(1.0f, 0.85f, 0.0f);
-    glRasterPos2f(-1.0f, 4.0f);
-    std::string titulo = "RANKING";
-    for (int i = 0; i < titulo.size(); i++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, titulo[i]);
+    dibujarTexto(-1.0f, 4.0f, "RANKING", GLUT_BITMAP_HELVETICA_18);
+
+    // Si no hay resultados mostrar mensaje
+    if (resultados.empty()) {
+        glColor3f(0.8f, 0.8f, 0.8f);
+        dibujarTexto(-2.5f, 0.0f, "No hay partidas guardadas aun",
+            GLUT_BITMAP_HELVETICA_18);
     }
-
-    // Mostrar los ultimos 8 resultados
-    int inicio = 0;
-    if (resultados.size() > 8) {
-        inicio = resultados.size() - 8;
-    }
-
-    for (int i = inicio; i < (int)resultados.size(); i++) {
-        float y = 3.0f - (i - inicio) * 0.7f;
-
-        // Color segun quien gano
-        if (resultados[i].ganador == "LUZ") {
-            glColor3f(1.0f, 0.85f, 0.0f); // Amarillo
-        }
-        else {
-            glColor3f(0.5f, 0.0f, 0.8f);  // Morado
+    else {
+        // Mostrar los ultimos 8 resultados
+        int inicio = 0;
+        if ((int)resultados.size() > 8) {
+            inicio = (int)resultados.size() - 8;
         }
 
-        // Dibujar linea del resultado
-        std::string linea = resultados[i].ganador + " - " +
-            std::to_string(resultados[i].turnosJugados) + " turnos";
-        glRasterPos2f(-2.0f, y);
-        for (int j = 0; j < linea.size(); j++) {
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, linea[j]);
+        for (int i = inicio; i < (int)resultados.size(); i++) {
+            float y = 3.0f - (i - inicio) * 0.7f;
+
+            if (resultados[i].ganador == "EE309") {
+                glColor3f(1.0f, 0.85f, 0.0f); // Amarillo
+            }
+            else {
+                glColor3f(0.5f, 0.0f, 0.8f);  // Morado
+            }
+
+            std::string linea = resultados[i].ganador + " - " +
+                std::to_string(resultados[i].turnosJugados) +
+                " turnos";
+            dibujarTexto(-2.0f, y, linea, GLUT_BITMAP_HELVETICA_12);
         }
     }
 
     // Instruccion salir
     glColor3f(0.5f, 0.5f, 0.5f);
-    glRasterPos2f(-2.0f, -4.0f);
-    std::string msg = "Pulsa ESC para volver al menu";
-    for (int i = 0; i < msg.size(); i++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, msg[i]);
-    }
+    dibujarTexto(-2.5f, -4.5f, "Pulsa ESC para volver al menu",
+        GLUT_BITMAP_HELVETICA_12);
 }

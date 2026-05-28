@@ -1,6 +1,6 @@
 #pragma once
 #include "Pieza.h"
-//#include "glut.h"
+#include "ETSIDI.h"
 #include <GL/glut.h>
 // SanSegundo - profe volador misterioso del departamento
 // Hereda de Pieza con : public Pieza - ES una Pieza 
@@ -12,14 +12,19 @@ private:
     bool divisionUsada; // Solo puede dividirse una vez
 
 public:
+    mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/profesores/sansegundo_idle1.png",  1 };
+    mutable ETSIDI::SpriteSequence spriteWalk{ "imagenes/profesores/sansegundo_walk.png",   1 };
+    mutable ETSIDI::SpriteSequence spriteAtaque{ "imagenes/profesores/sansegundo_ataque.png", 4 };
+    mutable ETSIDI::SpriteSequence spriteEspecial{ "imagenes/profesores/sansegundo_especial.png", 2 };
+    mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     SanSegundo(int fila, int col)
         : Pieza("SanSegundo", Bando::OSCURIDAD, TipoMovimiento::VOLADOR,
-                fila, col, 65, 15, 6, 4, 2)
+                fila, col, 200, 30, 5, 3, 2)
     {
         divisionUsada = false;
     }
 
-    void dibujar() override {
+  /*  void dibujar() override {
         float x = -4.5f + col * 1.0f + 0.5f;
         float y = -4.5f + fila * 1.0f + 0.5f;
 
@@ -44,9 +49,60 @@ public:
         }
 
         glPopMatrix();
+    } */
+   
+  /*  void dibujar() const override {
+        float x = -4.5f + col * 1.0f + 0.5f;
+        float y = -4.5f + fila * 1.0f + 0.5f;
+
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glMatrixMode(GL_PROJECTION); glPushMatrix();
+        glMatrixMode(GL_MODELVIEW);  glPushMatrix();
+
+        glTranslatef(x, y, 0.2f);
+        if (estaSeleccionada) glColor3f(1.0f, 1.0f, 0.0f);
+        else                  glColor3f(1.0f, 1.0f, 1.0f);
+
+        spriteActual->setCenter(1, 0);
+        spriteActual->setSize(0.9f, 0.9f);
+
+        spriteActual->draw();
+        spriteActual->loop();
+
+        glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+        glMatrixMode(GL_PROJECTION); glPopMatrix();
+        glPopAttrib();
+
+        glDisable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+    } */
+
+    void dibujar() const override {
+        float x = -4.5f + col * 1.0f + 0.5f;
+        float y = -4.5f + fila * 1.0f + 0.5f;
+
+        glPushMatrix();
+        glTranslatef(x, y, 0.2f);
+
+        if (estaSeleccionada) {
+            glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
+        }
+        else {
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        //CONFIGURACIÓN DEL SPRITE: Volvemos a los valores métricos
+        spriteActual->setCenter(0.5f, 0.5f); // Centrado absoluto en el origen de la traslación
+        spriteActual->setSize(1, 1);   // Tamaño relativo a 1 casilla de ancho
+        //Dibujamos el gráfico
+        spriteActual->draw();
+        spriteActual->loop();
+
+        glPopMatrix();
     }
 
     void habilidadEspecial() override {
+        spriteActual = &spriteEspecial;
         // Division - sube sus stats al usarla
         if (!divisionUsada) {
             vidaMax       += 20;

@@ -1,6 +1,6 @@
 #pragma once
 #include "Pieza.h"
-#include "Casillas.h"
+#include "Casilla.h"
 #include "CasillaOscilante.h"
 #include "PuntoDePoder.h"
 #include <vector>
@@ -14,28 +14,28 @@
 
 class Tablero {
 private:
-    Pieza*   piezas[9][9]; // Punteros a piezas (nullptr = vacio)
-    Casilla* casillas[9][9];  // Punteros a casillas - polimorfismo como en el Pang
+    Pieza*   piezas[9][9]; // punteros a piezas (nullptr = vacio)
+    Casilla* casillas[9][9];  // punteros a casillas - polimorfismo como en el Pang
 
-    // Parametros graficos
+    // parametros graficos
     float tamCasilla;
     float offsetX;
     float offsetY;
 
-    // Posiciones de los 5 puntos de poder
+    // posiciones de los 5 puntos de poder
     int puntosPoder[5][2];
 
-    // Para generar colores en cada turno
+    // para generar colores en cada turno
     float colorOscilanteR;
     float colorOscilanteG;
     float colorOscilanteB;
 
-    // Seleccion de piezas
+    // seleccion de piezas
     int filaSeleccionada;
     int colSeleccionada;
     bool haySeleccion;
 
-    // Casillas validas para moverse
+    // casillas validas para moverse
     std::vector<Coord> casillasValidas;//nose como poneerlo si no
 
 public:
@@ -43,8 +43,6 @@ public:
     ~Tablero();
 
     void inicializarCasillas();
-
-    // Dibujo
     void dibujar(Bando turno);
     void dibujarMarco(Bando turno);
     void dibujarCasillas();
@@ -52,13 +50,13 @@ public:
     void dibujarPuntosDePoder();
     void cambiarColorOscilantes();
 
-    // Gestion de piezas
+    // gestion de piezas
     void colocarPieza(Pieza* pieza, int fila, int col);
     bool moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDest);
     bool hayEnemigo(int fila, int col, Bando bandoActual);
     void eliminarPieza(int fila, int col);
 
-    // Seleccion con raton
+    // seleccion con raton
     void seleccionarPieza(int fila, int col, Bando turno);
     void deseleccionar();
     bool destinoEsValido(int fila, int col);
@@ -67,14 +65,13 @@ public:
     int  getFilaSeleccionada() const;
     int  getColSeleccionada()  const;
 
-    // Condiciones de victoria
+    // condiciones de victoria
     bool controlaPuntosDePoder(Bando bando);
     int  contarPiezas(Bando bando);
 
-    // Actualizacion cada frame
+    // zctualizacion cada turno
     void actualizar(float dt);
 
-    // Getters
     Pieza*   getPieza(int fila, int col);
     Casilla* getCasilla(int fila, int col);
     float    getTamCasilla() const;

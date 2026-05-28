@@ -16,7 +16,7 @@ class Ranking {
 private:
     std::vector<Resultado> resultados;
     std::string nombreFichero;
-
+    void dibujarTexto(float x, float y, std::string texto, void* fuente);
 public:
     Ranking();
     void guardarResultado(std::string ganador, int turnosJugados);

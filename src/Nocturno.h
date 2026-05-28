@@ -2,6 +2,7 @@
 #include "Pieza.h"
 //#include "glut.h"
 #include <GL/glut.h>
+#include "ETSIDI.h"
 // Nocturno - alumno misterioso, movimiento terrestre
 // Hereda de Pieza con : public Pieza - ES una Pieza 
 // Habilidad: puede duplicar velocidad una vez por batalla
@@ -12,14 +13,19 @@ private:
     bool velocidadDuplicada; // Solo puede duplicar una vez por batalla
 
 public:
+    mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/alumnos/nocturno_idle1.png",  1 };
+    mutable ETSIDI::SpriteSequence spriteWalk{ "imagenes/alumnos/nocturno_walk.png",   1 };
+    mutable ETSIDI::SpriteSequence spriteAtaque{ "imagenes/alumnos/nocturno_ataque.png", 5 };
+    mutable ETSIDI::SpriteSequence spriteEspecial{ "imagenes/alumnos/nocturno_especial.png", 1 };
+    mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     Nocturno(int fila, int col)
         : Pieza("Nocturno", Bando::LUZ, TipoMovimiento::TERRESTRE,
-                fila, col, 70, 18, 6, 2, 1)
+            fila, col, 250, 20, 5, 4, 2)
     {
         velocidadDuplicada = false;
     }
 
-    void dibujar() override {
+    /*void dibujar() override {
         float x = -4.5f + col * 1.0f + 0.5f;
         float y = -4.5f + fila * 1.0f + 0.5f;
 
@@ -35,16 +41,66 @@ public:
         glutSolidSphere(0.35f, 20, 20);
 
         // Punto brillante interior - efecto de brillo nocturno
-        glTranslatef(0, 0, 0.35f);
         glColor3f(0.5f, 0.5f, 1.0f);
-        glutSolidSphere(0.12f, 20, 20);
+        glutSolidSphere(0.12f, 10, 10);
+
+        glPopMatrix();
+    }*/
+    
+ /*   void dibujar() const override {
+        float x = -4.5f + col * 1.0f + 0.5f;
+        float y = -4.5f + fila * 1.0f + 0.5f;
+
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glMatrixMode(GL_PROJECTION); glPushMatrix();
+        glMatrixMode(GL_MODELVIEW);  glPushMatrix();
+
+        glTranslatef(x, y, 0.2f);
+        if (estaSeleccionada) glColor3f(1.0f, 1.0f, 0.0f);
+        else                  glColor3f(1.0f, 1.0f, 1.0f);
+
+        spriteActual->setCenter(1, 0);
+        spriteActual->setSize(0.9f, 0.9f);
+
+        spriteActual->draw();
+        spriteActual->loop();
+
+        glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+        glMatrixMode(GL_PROJECTION); glPopMatrix();
+        glPopAttrib();
+
+        glDisable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+    }  */
+
+    void dibujar() const override {
+        float x = -4.5f + col * 1.0f + 0.5f;
+        float y = -4.5f + fila * 1.0f + 0.5f;
+
+        glPushMatrix();
+        glTranslatef(x, y, 0.2f);
+
+        if (estaSeleccionada) {
+            glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
+        }
+        else {
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        //CONFIGURACIÓN DEL SPRITE: Volvemos a los valores métricos
+        spriteActual->setCenter(0.5f, 0.5f); // Centrado absoluto en el origen de la traslación
+        spriteActual->setSize(1, 1);   // Tamaño relativo a 1 casilla de ancho
+        //Dibujamos el gráfico
+        spriteActual->draw();
+        spriteActual->loop();
 
         glPopMatrix();
     }
 
     void habilidadEspecial() override {
         if (!velocidadDuplicada) {
-            velocidad         *= 2;
+            velocidad         *= 2;// pico de adrenalina
+            spriteActual = &spriteEspecial;
             velocidadDuplicada = true;
         }
     }

@@ -23,44 +23,77 @@ Batalla::Batalla()
 void Batalla::iniciar(Pieza* atac, Pieza* def) {
     atacante = atac;
     defensor = def;
-    estado   = EstadoBatalla::EN_CURSO;
+    estado = EstadoBatalla::EN_CURSO;
 
-    // Colocar las piezas en lados opuestos de la arena
-    xAtacante = ARENA_MIN + 1.0f;
+    xAtacante = ARENA_MIN + 1.0f;   // -3.5
     yAtacante = 0.0f;
-    xDefensor = ARENA_MAX - 1.0f;
+    xDefensor = ARENA_MAX - 1.0f;   //  3.5
     yDefensor = 0.0f;
 
-    // Velocidades a 0 al empezar
-    vxAtacante = vyAtacante = 0.0f;
-    vxDefensor = vyDefensor = 0.0f;
+    // velocidades a 0 para que el atacante no se mueva solo
+    vxAtacante = 0.0f;
+    vyAtacante = 0.0f;
+    vxDefensor = 0.0f;
+    vyDefensor = 0.0f;
 
-    // Reiniciar timers y estado de ataque
-    timerAtaqueAtacante = 0.0f;
-    timerAtaqueDefensor = 0.0f;
-    puedeAtacarAtacante = false;
+    // Timer ya cargado para que F funcione desde el primer momento
+    timerAtaqueAtacante = 1.0f;
+    timerAtaqueDefensor = 1.0f;
+    puedeAtacarAtacante = true;
 
-    // Colocar piedras en posiciones fijas - igual que en el Archon original
-    // Dos columnas de tres piedras a cada lado del centro
+    // Piedras en posiciones fijas
     piedras[0] = { -2.0f,  1.5f };
     piedras[1] = { -2.0f, -1.5f };
     piedras[2] = { -2.0f,  0.0f };
-    piedras[3] = {  2.0f,  1.5f };
-    piedras[4] = {  2.0f, -1.5f };
-    piedras[5] = {  2.0f,  0.0f };
+    piedras[3] = { 2.0f,  1.5f };
+    piedras[4] = { 2.0f, -1.5f };
+    piedras[5] = { 2.0f,  0.0f };
 }
-
 // DIBUJAR
 // Miguel dijo: cada clase sabe dibujarse a si misma
 void Batalla::dibujar() {
+    
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    glOrtho(-5.0, 5.0, -5.0, 6.0, -1.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_TEXTURE_2D);
+
+    
     dibujarArena();
-    dibujarPiedras();      // Las piedras van encima del fondo
+
+    dibujarPiedras();
+
+    proyectilAtacante.dibujar();
+    proyectilDefensor.dibujar();
+
     dibujarBarrasDeVida();
-    dibujarPiezas();       // Las piezas van encima de todo
+   
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    dibujarPiezas(); 
+
+    glDisable(GL_BLEND);
+
+    glEnable(GL_DEPTH_TEST);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
 }
 
 void Batalla::dibujarArena() {
-    // Fondo oscuro de la arena de combate
+    //fondooscuro de la arena de combate
     glColor3f(0.05f, 0.05f, 0.1f);
     glBegin(GL_QUADS);
     glVertex3f(ARENA_MIN, ARENA_MIN, 0.0f);
@@ -69,7 +102,7 @@ void Batalla::dibujarArena() {
     glVertex3f(ARENA_MIN, ARENA_MAX, 0.0f);
     glEnd();
 
-    // Borde de la arena
+    // borde de la arena
     glColor3f(0.8f, 0.8f, 0.0f);
     glLineWidth(2.0f);
     glBegin(GL_LINE_LOOP);
@@ -80,7 +113,7 @@ void Batalla::dibujarArena() {
     glEnd();
     glLineWidth(1.0f);
 
-    // Mostrar dificultad en pantalla
+    // mostrar dificultad en pantalla
     glColor3f(0.5f, 0.5f, 0.5f);
     glRasterPos2f(-4.3f, -4.0f);
     std::string textoNivel;
@@ -91,7 +124,7 @@ void Batalla::dibujarArena() {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, textoNivel[i]);
     }
 
-    // Instrucciones de control
+    // instrucciones de control
     glRasterPos2f(-1.0f, -4.0f);
     std::string textoControles = "WASD mover | F atacar";
     for (int i = 0; i < textoControles.size(); i++) {
@@ -100,18 +133,21 @@ void Batalla::dibujarArena() {
 }
 
 void Batalla::dibujarPiedras() {
+    glDisable(GL_TEXTURE_2D);
     for (int i = 0; i < NUM_PIEDRAS; i++) {
+        glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
+        glLoadIdentity(); // <--- Clave para que no se acumulen escalas
         glTranslatef(piedras[i].x, piedras[i].y, 0.0f);
 
-        // Piedra gris oscura - cubo solido
+        // Piedra gris
         glColor3f(0.4f, 0.4f, 0.4f);
-        glutSolidCube(0.5f);
+        glutSolidCube(0.4f); // Un pelín más pequeña para que cuadre con la colisión
 
-        // Borde mas oscuro para que parezca piedra de verdad
-        glColor3f(0.2f, 0.2f, 0.2f);
+        // Borde oscuro
+        glColor3f(0.1f, 0.1f, 0.1f);
         glLineWidth(2.0f);
-        glutWireCube(0.52f);
+        glutWireCube(0.42f);
         glLineWidth(1.0f);
 
         glPopMatrix();
@@ -121,82 +157,75 @@ void Batalla::dibujarPiedras() {
 void Batalla::dibujarBarrasDeVida() {
     if (atacante == nullptr || defensor == nullptr) return;
 
-    // Barra de vida del atacante (izquierda)
+    glDisable(GL_TEXTURE_2D);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity(); // Nos aseguramos de estar en el origen del plano 2D
+
     float porcAtacante = (float)atacante->getVidaActual() / (float)atacante->getVidaMax();
-
-    // Fondo gris
-    glColor3f(0.3f, 0.3f, 0.3f);
-    glBegin(GL_QUADS);
-    glVertex3f(-4.5f, 3.8f, 0.0f);
-    glVertex3f(-0.5f, 3.8f, 0.0f);
-    glVertex3f(-0.5f, 4.2f, 0.0f);
-    glVertex3f(-4.5f, 4.2f, 0.0f);
-    glEnd();
-
-    // Vida actual - azul para el atacante
-    glColor3f(0.0f, 0.4f, 1.0f);
-    glBegin(GL_QUADS);
-    glVertex3f(-4.5f,                    3.8f, 0.0f);
-    glVertex3f(-4.5f + 4.0f * porcAtacante, 3.8f, 0.0f);
-    glVertex3f(-4.5f + 4.0f * porcAtacante, 4.2f, 0.0f);
-    glVertex3f(-4.5f,                    4.2f, 0.0f);
-    glEnd();
-
-    // Nombre del atacante
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glRasterPos2f(-4.3f, 4.3f);
-    std::string nombreAtacante = atacante->getNombre();
-    for (int i = 0; i < nombreAtacante.size(); i++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, nombreAtacante[i]);
-    }
-
-    // Barra de vida del defensor (derecha)
     float porcDefensor = (float)defensor->getVidaActual() / (float)defensor->getVidaMax();
 
-    // Fondo gris
+    // fondo gris
     glColor3f(0.3f, 0.3f, 0.3f);
     glBegin(GL_QUADS);
-    glVertex3f(0.5f, 3.8f, 0.0f);
-    glVertex3f(4.5f, 3.8f, 0.0f);
-    glVertex3f(4.5f, 4.2f, 0.0f);
-    glVertex3f(0.5f, 4.2f, 0.0f);
+    glVertex3f(-4.8f, 4.7f, 0.0f);
+    glVertex3f(-0.2f, 4.7f, 0.0f);
+    glVertex3f(-0.2f, 5.1f, 0.0f);
+    glVertex3f(-4.8f, 5.1f, 0.0f);
     glEnd();
+    // vida azul
+    glColor3f(0.0f, 0.5f, 1.0f);
+    glBegin(GL_QUADS);
+    glVertex3f(-4.8f, 4.7f, 0.0f);
+    glVertex3f(-4.8f + 4.6f * porcAtacante, 4.7f, 0.0f);
+    glVertex3f(-4.8f + 4.6f * porcAtacante, 5.1f, 0.0f);
+    glVertex3f(-4.8f, 5.1f, 0.0f);
+    glEnd();
+    // nombre
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glRasterPos2f(-4.8f, 5.2f);
+    std::string nA = atacante->getNombre();
+    for (int i = 0; i < (int)nA.size(); i++)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, nA[i]);
 
-    // Vida actual - rojo para el defensor
+    // BARRA DEFENSOR 
+    glColor3f(0.3f, 0.3f, 0.3f);
+    glBegin(GL_QUADS);
+    glVertex3f(0.2f, 4.7f, 0.0f);
+    glVertex3f(4.8f, 4.7f, 0.0f);
+    glVertex3f(4.8f, 5.1f, 0.0f);
+    glVertex3f(0.2f, 5.1f, 0.0f);
+    glEnd();
+    // vidaroja (se vacía de derecha a izquierda como en el Archon)
     glColor3f(1.0f, 0.1f, 0.1f);
     glBegin(GL_QUADS);
-    glVertex3f(4.5f,                     3.8f, 0.0f);
-    glVertex3f(4.5f - 4.0f * porcDefensor, 3.8f, 0.0f);
-    glVertex3f(4.5f - 4.0f * porcDefensor, 4.2f, 0.0f);
-    glVertex3f(4.5f,                     4.2f, 0.0f);
+    glVertex3f(4.8f, 4.7f, 0.0f);
+    glVertex3f(4.8f - 4.6f * porcDefensor, 4.7f, 0.0f);
+    glVertex3f(4.8f - 4.6f * porcDefensor, 5.1f, 0.0f);
+    glVertex3f(4.8f, 5.1f, 0.0f);
     glEnd();
-
-    // Nombre del defensor
+    // nombre
     glColor3f(1.0f, 1.0f, 1.0f);
-    glRasterPos2f(2.0f, 4.3f);
-    std::string nombreDefensor = defensor->getNombre();
-    for (int i = 0; i < nombreDefensor.size(); i++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, nombreDefensor[i]);
-    }
+    glRasterPos2f(0.3f, 5.2f);
+    std::string nD = defensor->getNombre();
+    for (int i = 0; i < (int)nD.size(); i++)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, nD[i]);
 
-    // Circulo verde cuando el jugador puede atacar con F
+    // indicador F verde cuando puede atacar
     if (puedeAtacarAtacante) {
         glColor3f(0.0f, 1.0f, 0.0f);
         glPushMatrix();
-        glTranslatef(-4.3f, 3.5f, 0.1f);
-        glutSolidSphere(0.1f, 10, 10);
+        glTranslatef(-4.6f, 4.4f, 0.1f);
+        glutSolidSphere(0.15f, 10, 10);
         glPopMatrix();
-
         glColor3f(0.0f, 1.0f, 0.0f);
-        glRasterPos2f(-4.1f, 3.45f);
-        std::string textoF = "F";
-        for (int i = 0; i < textoF.size(); i++) {
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, textoF[i]);
-        }
+        glRasterPos2f(-4.3f, 4.35f);
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, 'F');
     }
+    glPopMatrix();
 }
 
-void Batalla::dibujarPiezas() {
+/*void Batalla::dibujarPiezas() {
     if (atacante == nullptr || defensor == nullptr) return;
 
     // Atacante - azul
@@ -212,50 +241,137 @@ void Batalla::dibujarPiezas() {
     glColor3f(1.0f, 0.1f, 0.1f);
     glutSolidSphere(0.4f, 20, 20);
     glPopMatrix();
+} */
+
+void Batalla::dibujarPiezas() {
+    if (atacante == nullptr || defensor == nullptr) return;
+
+    // ==========================================
+    // RENDERIZADO DEL ATACANTE (Luz / Alumnos)
+    // ==========================================
+    glPushAttrib(GL_ALL_ATTRIB_BITS); // Guardamos TODO el estado de texturas/luces/mezclas
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // 1. Lo movemos a la posición real de la arena de combate en Z = 0.1
+    glTranslatef(xAtacante, yAtacante, 0.1f);
+
+    // 2. Truco fundamental: Como el .dibujar() de tu personaje calcula 
+    // automáticamente la posición basada en col y fila del tablero principal,
+    // vamos a contrarrestar esa traslación para que dibuje en el origen local (0,0).
+    glPushMatrix();
+    float tableroX_at = -4.5f + atacante->getCol() * 1.0f + 0.5f;
+    float tableroY_at = -4.5f + atacante->getFila() * 1.0f + 0.5f;
+    glTranslatef(-tableroX_at, -tableroY_at, 0.0f);
+
+    glEnable(GL_TEXTURE_2D); // ETSIDI necesita las texturas activas
+    atacante->dibujar();     // Llama al draw() del SpriteSequence
+    glPopMatrix();
+
+    // Restauramos las matrices para este elemento
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopAttrib(); // El estado de OpenGL vuelve a estar limpio
+
+
+    // ==========================================
+    // RENDERIZADO DEL DEFENSOR (Oscuridad / Profes)
+    // ==========================================
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // 1. Lo movemos a la posición de la arena
+    glTranslatef(xDefensor, yDefensor, 0.1f);
+
+    // 2. Contrarrestamos la posición fija de su fila/columna del tablero
+    glPushMatrix();
+    float tableroX_def = -4.5f + defensor->getCol() * 1.0f + 0.5f;
+    float tableroY_def = -4.5f + defensor->getFila() * 1.0f + 0.5f;
+    glTranslatef(-tableroX_def, -tableroY_def, 0.0f);
+
+    glEnable(GL_TEXTURE_2D);
+    defensor->dibujar();
+    glPopMatrix();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopAttrib();
+
+    // Apagamos las texturas por seguridad para los siguientes ciclos de dibujado
+    glDisable(GL_TEXTURE_2D);
 }
 
+/*void Batalla::dibujarPiezas() {
+    if (atacante == nullptr || defensor == nullptr) return;
+
+    // ATACANTE
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    // Lo movemos directamente a su posición de la arena en tiempo real
+    glTranslatef(xAtacante, yAtacante, 0.0f);
+    atacante->dibujar();
+    glPopMatrix();
+
+    // DEFENSOR
+    glPushMatrix();
+    glLoadIdentity();
+    glTranslatef(xDefensor, yDefensor, 0.0f);
+    defensor->dibujar();
+    glPopMatrix();
+
+    // Apagamos texturas por si ETSIDI las dejó encendidas
+    glDisable(GL_TEXTURE_2D);
+}*/
 // ACTUALIZAR - igual que Mundo::mueve en el Pang
 void Batalla::actualizar(float dt) {
     if (estado != EstadoBatalla::EN_CURSO) return;
     if (atacante == nullptr || defensor == nullptr) return;
 
-    // Mover el atacante segun su velocidad
-    xAtacante += vxAtacante * dt * atacante->getVelocidad();
-    yAtacante += vyAtacante * dt * atacante->getVelocidad();
+    xAtacante += vxAtacante * dt * 3.0f;
+    yAtacante += vyAtacante * dt * 3.0f;
 
-    // Limitar al atacante dentro de la arena
     if (xAtacante < ARENA_MIN + 0.4f) xAtacante = ARENA_MIN + 0.4f;
     if (xAtacante > ARENA_MAX - 0.4f) xAtacante = ARENA_MAX - 0.4f;
     if (yAtacante < ARENA_MIN + 0.4f) yAtacante = ARENA_MIN + 0.4f;
     if (yAtacante > ARENA_MAX - 0.4f) yAtacante = ARENA_MAX - 0.4f;
 
-    // Actualizar timers
     timerAtaqueAtacante += dt;
     timerAtaqueDefensor += dt;
 
-    // Cuando se carga el timer el jugador puede atacar con F
-    float intervaloAtaque = 1.0f;
-    if (timerAtaqueAtacante >= intervaloAtaque) {
+    if (timerAtaqueAtacante >= 1.0f) {
         puedeAtacarAtacante = true;
+        timerAtaqueAtacante = 0.0f;
     }
 
-    // Comprobar colisiones con las piedras
     comprobarColisionesPiedras();
 
-    // La IA mueve al defensor
+    proyectilAtacante.mover(dt);
+    proyectilDefensor.mover(dt);
+
+    comprobarColisionesProyectiles();
+
     moverIA(dt);
-
-    // La IA ataca automaticamente
-    comprobarAtaques(false);
-
     comprobarFinBatalla();
+    glutPostRedisplay();
 }
 
 // COLISIONES CON PIEDRAS
-// Las piedras bloquean el movimiento - sirven de escudo
+// las piedras bloquean el movimiento - sirven de escudo
 void Batalla::comprobarColisionesPiedras() {
     for (int i = 0; i < NUM_PIEDRAS; i++) {
-        // Colision del atacante con la piedra
+        // colision del atacante con la piedra
         float dxA = xAtacante - piedras[i].x;
         float dyA = yAtacante - piedras[i].y;
         float distA = sqrtf(dxA * dxA + dyA * dyA);
@@ -266,7 +382,7 @@ void Batalla::comprobarColisionesPiedras() {
             yAtacante = piedras[i].y + ny * 0.5f;
         }
 
-        // Colision del defensor con la piedra
+        // colision del defensor con la piedra
         float dxD = xDefensor - piedras[i].x;
         float dyD = yDefensor - piedras[i].y;
         float distD = sqrtf(dxD * dxD + dyD * dyD);
@@ -280,83 +396,146 @@ void Batalla::comprobarColisionesPiedras() {
 }
 
 // IA DEL DEFENSOR
-// Tres niveles de dificultad que cambian velocidad e intervalo de ataque
+// tres niveles de dificultad que cambian velocidad e intervalo de ataque
 void Batalla::moverIA(float dt) {
     if (defensor == nullptr) return;
 
-    // Parametros segun dificultad
-    float multiplicadorVelocidad;
+    float velIA;
     float intervaloAtaqueIA;
 
     if (dificultad == DificultadIA::FACIL) {
-        multiplicadorVelocidad = 0.2f; // Muy lenta
-        intervaloAtaqueIA      = 2.0f; // Ataca cada 2 segundos
+        velIA = 1.0f;
+        intervaloAtaqueIA = 2.5f;
     }
     else if (dificultad == DificultadIA::MEDIO) {
-        multiplicadorVelocidad = 0.5f; // Normal
-        intervaloAtaqueIA      = 1.0f; // Ataca cada 1 segundo
+        velIA = 2.0f;
+        intervaloAtaqueIA = 1.5f;
     }
-    else { // DIFICIL
-        multiplicadorVelocidad = 0.9f; // Muy rapida
-        intervaloAtaqueIA      = 0.5f; // Ataca cada medio segundo
+    else {
+        velIA = 3.0f;
+        intervaloAtaqueIA = 0.8f;
     }
 
     float dx = xAtacante - xDefensor;
     float dy = yAtacante - yDefensor;
     float distancia = sqrtf(dx * dx + dy * dy);
 
-    // En dificil mantiene distancia para atacar desde lejos
-    float distanciaMinima = (dificultad == DificultadIA::DIFICIL) ? 1.5f : 0.5f;
+    float distMin = (dificultad == DificultadIA::DIFICIL) ? 2.0f : 1.5f;
 
-    if (distancia > distanciaMinima) {
+    if (distancia > distMin && distancia > 0.01f) {
         dx /= distancia;
         dy /= distancia;
-        xDefensor += dx * dt * defensor->getVelocidad() * multiplicadorVelocidad;
-        yDefensor += dy * dt * defensor->getVelocidad() * multiplicadorVelocidad;
+        xDefensor += dx * dt * velIA;
+        yDefensor += dy * dt * velIA;
     }
 
-    // Limitar al defensor dentro de la arena
     if (xDefensor < ARENA_MIN + 0.4f) xDefensor = ARENA_MIN + 0.4f;
     if (xDefensor > ARENA_MAX - 0.4f) xDefensor = ARENA_MAX - 0.4f;
     if (yDefensor < ARENA_MIN + 0.4f) yDefensor = ARENA_MIN + 0.4f;
     if (yDefensor > ARENA_MAX - 0.4f) yDefensor = ARENA_MAX - 0.4f;
 
-    // La IA ataca automaticamente cuando puede
+    // la IA dispara cuando el timer esta listo
     if (timerAtaqueDefensor >= intervaloAtaqueIA) {
-        float dx2 = xAtacante - xDefensor;
-        float dy2 = yAtacante - yDefensor;
-        float dist2 = sqrtf(dx2 * dx2 + dy2 * dy2);
-        if (dist2 < (float)defensor->getAlcanceAtaque()) {
-            atacante->recibirDano(defensor->getAtaque());
+        if (!proyectilDefensor.getActivo()) {
+            // apunta hacia el atacante con algo de imprecision en FACIL
+            float ddx = xAtacante - xDefensor;
+            float ddy = yAtacante - yDefensor;
+            float ddist = sqrtf(ddx * ddx + ddy * ddy);
+            if (ddist > 0.01f) {
+                ddx /= ddist;
+                ddy /= ddist;
+            }
+
+            // en FACIL la IA apunta un poco mal a proposito
+            if (dificultad == DificultadIA::FACIL) {
+                ddx += ((rand() % 100) - 50) / 200.0f;
+                ddy += ((rand() % 100) - 50) / 200.0f;
+                float norm = sqrtf(ddx * ddx + ddy * ddy);
+                if (norm > 0.01f) { ddx /= norm; ddy /= norm; }
+            }
+
+            const float VEL_PROYECTIL = 5.0f;
+            proyectilDefensor.disparar(
+                xDefensor, yDefensor,
+                ddx * VEL_PROYECTIL,
+                ddy * VEL_PROYECTIL
+            );
             timerAtaqueDefensor = 0.0f;
         }
     }
 }
-
 // COMPROBAR ATAQUES
-// jugadorAtaca = true cuando el jugador pulsa F
-// jugadorAtaca = false cuando lo llama la IA
 void Batalla::comprobarAtaques(bool jugadorAtaca) {
-    float dx = xAtacante - xDefensor;
-    float dy = yAtacante - yDefensor;
-    float distancia = sqrtf(dx * dx + dy * dy);
-
-    // Ataque del jugador - solo si pulso F y esta cargado y cerca
     if (jugadorAtaca && puedeAtacarAtacante) {
-        if (distancia < (float)atacante->getAlcanceAtaque()) {
-            defensor->recibirDano(atacante->getAtaque());
+        // solo disparar si no hay ya un proyectil en vuelo
+        if (!proyectilAtacante.getActivo()) {
+            // direccion hacia el defensor
+            float dx = xDefensor - xAtacante;
+            float dy = yDefensor - yAtacante;
+            float dist = sqrtf(dx * dx + dy * dy);
+            if (dist > 0.01f) {
+                dx /= dist;
+                dy /= dist;
+            }
+            // Velocidad del proyectil: 6 unidades/seg
+            const float VEL_PROYECTIL = 6.0f;
+            proyectilAtacante.disparar(
+                xAtacante, yAtacante,
+                dx * VEL_PROYECTIL,
+                dy * VEL_PROYECTIL
+            );
+            puedeAtacarAtacante = false;
             timerAtaqueAtacante = 0.0f;
-            puedeAtacarAtacante = false; // Resetear hasta que se cargue
         }
     }
 }
+void Batalla::comprobarColisionesProyectiles() {
+    // proyectil atacante golpea defensor
+    if (proyectilAtacante.getActivo()) {
+        float dx = proyectilAtacante.getX() - xDefensor;
+        float dy = proyectilAtacante.getY() - yDefensor;
+        float dist = sqrtf(dx * dx + dy * dy);
+        if (dist < 0.3f) {
+            defensor->recibirDano(atacante->getAtaque());
+            proyectilAtacante.setActivo(false);
+        }
+    }
 
+    // proyectil defensor golpea atacante
+    if (proyectilDefensor.getActivo()) {
+        float dx = proyectilDefensor.getX() - xAtacante;
+        float dy = proyectilDefensor.getY() - yAtacante;
+        float dist = sqrtf(dx * dx + dy * dy);
+        if (dist < 0.3f) {
+            atacante->recibirDano(defensor->getAtaque());
+            proyectilDefensor.setActivo(false);
+            printf("Proyectil ataca atacante - vida restante: %d/%d\n",
+                atacante->getVidaActual(), atacante->getVidaMax());
+        }
+    }
+
+    // proyectiles bloqueados por piedras
+    for (int i = 0; i < NUM_PIEDRAS; i++) {
+        if (proyectilAtacante.getActivo()) {
+            float dx = proyectilAtacante.getX() - piedras[i].x;
+            float dy = proyectilAtacante.getY() - piedras[i].y;
+            if (sqrtf(dx * dx + dy * dy) < 0.35f)
+                proyectilAtacante.setActivo(false);
+        }
+        if (proyectilDefensor.getActivo()) {
+            float dx = proyectilDefensor.getX() - piedras[i].x;
+            float dy = proyectilDefensor.getY() - piedras[i].y;
+            if (sqrtf(dx * dx + dy * dy) < 0.35f)
+                proyectilDefensor.setActivo(false);
+        }
+    }
+}
 // COMPROBAR FIN DE BATALLA
 void Batalla::comprobarFinBatalla() {
     if (atacante == nullptr || defensor == nullptr) return;
 
     if (!atacante->getEstaViva() && !defensor->getEstaViva()) {
-        estado = EstadoBatalla::GANA_DEFENSOR; // Empate: gana el defensor
+        estado = EstadoBatalla::GANA_DEFENSOR; // empate: gana el defensor
     }
     else if (!atacante->getEstaViva()) {
         estado = EstadoBatalla::GANA_DEFENSOR;
@@ -367,25 +546,25 @@ void Batalla::comprobarFinBatalla() {
 }
 
 // GESTION TECLADO
-// WASD para mover, F para atacar cuando este cargado
+// WASD para mover, F para atacar cuando este cargado circulo verde
 void Batalla::gestionTeclado(unsigned char tecla) {
     if (estado != EstadoBatalla::EN_CURSO) return;
 
     switch (tecla) {
-    case 'w': vyAtacante =  1.0f; break;
-    case 's': vyAtacante = -1.0f; break;
-    case 'a': vxAtacante = -1.0f; break;
-    case 'd': vxAtacante =  1.0f; break;
-    case 'f': // F para atacar cuando el circulo este verde
+    case 'w': case 'W': vyAtacante = 1.0f; break;
+    case 's': case 'S': vyAtacante = -1.0f; break;
+    case 'a': case 'A': vxAtacante = -1.0f; break;
+    case 'd': case 'D': vxAtacante = 1.0f; break;
+    case 'f': case 'F':
         comprobarAtaques(true);
         break;
     }
 }
 
-// Para parar la pieza cuando se suelta la tecla
 void Batalla::gestionTecladoSuelto(unsigned char tecla) {
     switch (tecla) {
-    case 'w': case 's': vyAtacante = 0.0f; break;
-    case 'a': case 'd': vxAtacante = 0.0f; break;
+    case 'w': case 'W': case 's': case 'S': vyAtacante = 0.0f; break;
+    case 'a': case 'A': case 'd': case 'D': vxAtacante = 0.0f; break;
     }
 }
+

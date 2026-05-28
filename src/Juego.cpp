@@ -27,57 +27,172 @@ Juego::Juego() : tablero{ Tablero(1.0f, -4.5f, -4.5f) }
     filaDestinoBatalla = -1;
     colDestinoBatalla  = -1;
     turnosJugados      = 0;
+    filaAtacanteBatalla = -1;
+    colAtacanteBatalla = -1;
 }
 
 // INICIALIZAR
-// Colocamos las piezas en el tablero al empezar, igual que en el Pang se agregaban esferas con esferas.agregar(new Esfera(...)) en inicializa()
-// LUZ en columna izquierda, OSCURIDAD en derecha
+// Colocamos las piezas en el tablero al empezar, igual que en el Pang se agregaban esferas con esferas.agregar(new Esfera(...)) en inicializa() LUZ en columna izquierda, OSCURIDAD en derecha
+
 void Juego::inicializar() {
     turnosJugados = 0;
     juegoTerminado = false;
 
-    // --- BANDO LUZ - columna izquierda (col 0) ---
+    //  BANDO LUZ - columna izquierda (col 0) + peones en col 1 
+    tablero.colocarPieza(new Ocupado(0, 0), 0, 0);
+    tablero.colocarPieza(new Veterano(1, 0), 1, 0);
+    tablero.colocarPieza(new Nocturno(2, 0), 2, 0);
+    tablero.colocarPieza(new Mago(3, 0), 3, 0);
     tablero.colocarPieza(new Delegado(4, 0), 4, 0); // Lider en el centro
-    tablero.colocarPieza(new Todo10(0, 0), 0, 0); // Volador arriba
-    tablero.colocarPieza(new Mago(1, 0), 1, 0); // Volador
-    tablero.colocarPieza(new Ocupado(2, 0), 2, 0); // Volador
-    tablero.colocarPieza(new Veterano(3, 0), 3, 0); // Terrestre
-    tablero.colocarPieza(new Ausente(5, 0), 5, 0); // Terrestre
-    tablero.colocarPieza(new Nocturno(6, 0), 6, 0); // Terrestre
-    tablero.colocarPieza(new Humilde(7, 0), 7, 0); // Peon
-    tablero.colocarPieza(new Humilde(8, 0), 8, 0); // Peon
+    tablero.colocarPieza(new Todo10(5, 0), 5, 0);
+    tablero.colocarPieza(new Nocturno(6, 0), 6, 0);
+    tablero.colocarPieza(new Veterano(7, 0), 7, 0);
+    tablero.colocarPieza(new Ocupado(8, 0), 8, 0);
 
-    // --- BANDO OSCURIDAD - columna derecha (col 8) ---
-    tablero.colocarPieza(new MiguelHernando(4, 8), 4, 8); // Lider en el centro
-    tablero.colocarPieza(new Platero(0, 8), 0, 8); // Volador arriba
-    tablero.colocarPieza(new Basil(1, 8), 1, 8); // Volador
-    tablero.colocarPieza(new SanSegundo(2, 8), 2, 8); // Volador
-    tablero.colocarPieza(new Giuseppe(3, 8), 3, 8); // Terrestre
-    tablero.colocarPieza(new HectorMontes(5, 8), 5, 8); // Terrestre
-    tablero.colocarPieza(new OscarC(6, 8), 6, 8); // Terrestre
-    tablero.colocarPieza(new Imanol(7, 8), 7, 8); // Peon
-    tablero.colocarPieza(new Imanol(8, 8), 8, 8); // Peon
+    // Fila de peones LUZ - columna 1
+    tablero.colocarPieza(new Ausente(0, 1), 0, 1);
+    tablero.colocarPieza(new Humilde(1, 1), 1, 1);
+    tablero.colocarPieza(new Humilde(2, 1), 2, 1);
+    tablero.colocarPieza(new Humilde(3, 1), 3, 1);
+    tablero.colocarPieza(new Humilde(4, 1), 4, 1);
+    tablero.colocarPieza(new Humilde(5, 1), 5, 1);
+    tablero.colocarPieza(new Humilde(6, 1), 6, 1);
+    tablero.colocarPieza(new Humilde(7, 1), 7, 1);
+    tablero.colocarPieza(new Ausente(8, 1), 8, 1);
+
+    // BANDO OSCURIDAD - columna derecha (col 8) + peones en col 7 
+    tablero.colocarPieza(new SanSegundo(0, 8), 0, 8);
+    tablero.colocarPieza(new HectorMontes(1, 8), 1, 8);
+    tablero.colocarPieza(new OscarC(2, 8), 2, 8);
+    tablero.colocarPieza(new Basil(3, 8), 3, 8);
+    tablero.colocarPieza(new MiguelHernando(4, 8), 4, 8); // lider
+    tablero.colocarPieza(new Platero(5, 8), 5, 8);
+    tablero.colocarPieza(new OscarC(6, 8), 6, 8);
+    tablero.colocarPieza(new HectorMontes(7, 8), 7, 8);
+    tablero.colocarPieza(new SanSegundo(8, 8), 8, 8);
+    // fila de peones OSCURIDAD - columna 7
+    tablero.colocarPieza(new Giuseppe(0, 7), 0, 7);
+    tablero.colocarPieza(new Imanol(1, 7), 1, 7);
+    tablero.colocarPieza(new Imanol(2, 7), 2, 7);
+    tablero.colocarPieza(new Imanol(3, 7), 3, 7);
+    tablero.colocarPieza(new Imanol(4, 7), 4, 7);
+    tablero.colocarPieza(new Imanol(5, 7), 5, 7);
+    tablero.colocarPieza(new Imanol(6, 7), 6, 7);
+    tablero.colocarPieza(new Imanol(7, 7), 7, 7);
+    tablero.colocarPieza(new Giuseppe(8, 7), 8, 7);
 }
-
 // DIBUJAR - decide que pantalla mostrar segun el estado igual que el Coordinador del Pang gestionaba el dibujo
-void Juego::dibujar() {
+
+/*void Juego::dibujar() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-5.0, 5.0, -5.0, 5.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     if (juegoTerminado) {
         dibujarPantallaFin();
-    } else if (estadoActual == EstadoJuego::MENU) {
+    }
+    else if (estadoActual == EstadoJuego::MENU) {
+        glDisable(GL_DEPTH_TEST); // desactivar depth test para el menu
         menu.dibujar();
-    } else if (estadoActual == EstadoJuego::TABLERO) {
+        glEnable(GL_DEPTH_TEST);  // restaurar para el tablero y batalla
+    }
+     else if (estadoActual == EstadoJuego::TABLERO) {
+        glDisable(GL_DEPTH_TEST);
         tablero.dibujar(turnoActual);
-    } else if (estadoActual == EstadoJuego::BATALLA) {
+        // Restaurar despues de todos los sprites
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(-5.0, 5.0, -5.0, 5.0, -1.0, 1.0);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_DEPTH_TEST);
+    }
+    else if (estadoActual == EstadoJuego::BATALLA) {
         batalla.dibujar();
-    } else if (estadoActual == EstadoJuego::RANKING) {
+    }
+    else if (estadoActual == EstadoJuego::RANKING) {
+        glDisable(GL_DEPTH_TEST); // desactivar depth test para el ranking
         ranking.dibujar();
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    glutSwapBuffers();
+}*/
+void Juego::dibujar() {
+   
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (juegoTerminado) {
+        dibujarPantallaFin();
+        return;
+    }
+
+    switch (estadoActual) {
+    case EstadoJuego::MENU:
+        menu.dibujar();
+        break;
+    case EstadoJuego::TABLERO:
+        tablero.dibujar(turnoActual);
+        break;
+    case EstadoJuego::BATALLA:
+        batalla.dibujar(); 
+        break;
+    case EstadoJuego::RANKING:
+        ranking.dibujar();
+        break;
     }
 
     glutSwapBuffers();
 }
+/*void Juego::dibujar() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-5.0, 5.0, -5.0, 5.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_BLEND);
+
+    if (juegoTerminado) {
+        dibujarPantallaFin();
+    }
+    else if (estadoActual == EstadoJuego::MENU) {
+        glDisable(GL_DEPTH_TEST);
+        menu.dibujar();
+        glEnable(GL_DEPTH_TEST);
+    }
+    else if (estadoActual == EstadoJuego::RANKING) {
+        glDisable(GL_DEPTH_TEST);
+        ranking.dibujar();
+        glEnable(GL_DEPTH_TEST);
+    }
+    else if (estadoActual == EstadoJuego::BATALLA) {
+        batalla.dibujar();
+    }
+    else if (estadoActual == EstadoJuego::TABLERO) {
+        glDisable(GL_DEPTH_TEST);
+        tablero.dibujar(turnoActual);
+        glEnable(GL_DEPTH_TEST);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        for (int f = 0; f < 9; f++)
+            for (int c = 0; c < 9; c++) {
+                Pieza* p = tablero.getPieza(f, c);
+                if (p != nullptr && p->getEstaViva())
+                    p->dibujar();
+            }
+        glDisable(GL_BLEND);
+    }
+
+    glutSwapBuffers();
+}*/
 
 // CAMBIAR TURNO
 void Juego::cambiarTurno() {
@@ -194,7 +309,7 @@ void Juego::gestionTeclado(unsigned char tecla, int x, int y) {
             glutPostRedisplay();
             return;
         } else {
-            menu.gestionTeclado(tecla); // Deja que el menu gestione el ESC
+            menu.gestionTeclado(tecla); // deja que el menu gestione el ESC
             glutPostRedisplay();
             return;
         }
@@ -230,31 +345,44 @@ void Juego::gestionTecladoSuelto(unsigned char tecla, int x, int y) {
 
 // INICIAR BATALLA
 void Juego::iniciarBatalla(Pieza* atacante, Pieza* defensor) {
+    // guardar posicion del atacante aqui - despues getFilaSeleccionada() vale -1
+    filaAtacanteBatalla = tablero.getFilaSeleccionada();
+    colAtacanteBatalla = tablero.getColSeleccionada();
+
     estadoActual = EstadoJuego::BATALLA;
     batalla.iniciar(atacante, defensor);
 }
 
 // TERMINAR BATALLA
-// Segun quien gano, el tablero elimina al perdedor
-// Igual que en el Pang el coordinador eliminaba la esfera cuando chocaba
+// Segun quien gano, el tablero elimina al perdedor(igual que en el Pang el coordinador eliminaba la esfera cuando chocaba)
 void Juego::terminarBatalla() {
     estadoActual = EstadoJuego::TABLERO;
 
-    int filaAtacante = tablero.getFilaSeleccionada();
-    int colAtacante  = tablero.getColSeleccionada();
+    // usamos las coordenadas guardadas en iniciarBatalla, NO getFilaSeleccionada()
+    int filaAtacante = filaAtacanteBatalla;
+    int colAtacante = colAtacanteBatalla;
 
     if (batalla.getEstado() == EstadoBatalla::GANA_ATACANTE) {
+        // el defensor muere, el atacante ocupa su casilla
         tablero.eliminarPieza(filaDestinoBatalla, colDestinoBatalla);
-        tablero.moverPieza(filaAtacante, colAtacante, filaDestinoBatalla, colDestinoBatalla);
-    } else if (batalla.getEstado() == EstadoBatalla::GANA_DEFENSOR) {
+        tablero.moverPieza(filaAtacante, colAtacante,
+            filaDestinoBatalla, colDestinoBatalla);
+    }
+    else if (batalla.getEstado() == EstadoBatalla::GANA_DEFENSOR) {
+        // el atacante muere, el defensor se queda donde estaba
         tablero.eliminarPieza(filaAtacante, colAtacante);
     }
+
+    // restaurar vida completa al ganador para la siguiente batalla
+    if (batalla.getEstado() == EstadoBatalla::GANA_ATACANTE && batalla.getAtacante() != nullptr)
+        batalla.getAtacante()->curar(9999);
+    if (batalla.getEstado() == EstadoBatalla::GANA_DEFENSOR && batalla.getDefensor() != nullptr)
+        batalla.getDefensor()->curar(9999);
 
     tablero.deseleccionar();
     cambiarTurno();
 }
-
-// COMPROBAR VICTORIA - las dos condiciones del Archon original
+// COMPROBAR VICTORIA - las dos condiciones del ARCHON 
 void Juego::comprobarVictoria() {
     if (tablero.controlaPuntosDePoder(Bando::LUZ)) {
         juegoTerminado = true;

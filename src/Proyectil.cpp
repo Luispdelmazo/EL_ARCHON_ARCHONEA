@@ -17,7 +17,7 @@ void Proyectil::mover(float dt) {
     if (!activo) return;
     x += vx * dt;
     y += vy * dt;
-    // Si sale de la arena se desactiva
+    // si sale de la arena se desactiva
     if (x < -4.5f || x > 4.5f || y < -4.5f || y > 4.5f) {
         activo = false;
     }
@@ -26,7 +26,7 @@ void Proyectil::dibujar() {
     if (!activo) return;
     glPushMatrix();
     glTranslatef(x, y, 0.1f);
-    glColor3f(1.0f, 1.0f, 0.0f); // Amarillo
+    glColor3f(1.0f, 1.0f, 0.0f); // amarillo
     glutSolidSphere(0.1f, 10, 10);
     glPopMatrix();
 }

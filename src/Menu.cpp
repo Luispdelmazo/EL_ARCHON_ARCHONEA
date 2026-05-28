@@ -6,9 +6,15 @@ Menu::Menu() {
     estadoMenu             = EstadoMenu::PRINCIPAL;
     haSeleccionado         = false;
 }
-
+/*
 void Menu::dibujarTexto(float x, float y, std::string texto) {
     glRasterPos2f(x, y);
+    for (int i = 0; i < (int)texto.size(); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, texto[i]);
+    }
+}*/
+void Menu::dibujarTexto(float x, float y, float z, std::string texto) {
+    glRasterPos3f(x, y, z);
     for (int i = 0; i < (int)texto.size(); i++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, texto[i]);
     }
@@ -37,10 +43,10 @@ void Menu::dibujarMenuPrincipal() {
 
     // Titulo
     glColor3f(1.0f, 0.85f, 0.0f);
-    dibujarTexto(-1.5f, 3.0f, "PACHON");
+    dibujarTexto(-1.5f, 3.0f, 0.1f,"PACHON");
 
     glColor3f(0.8f, 0.8f, 0.8f);
-    dibujarTexto(-2.0f, 2.2f, "EE309 vs Automatica UPM");
+    dibujarTexto(-2.0f, 2.2f, 0.1f, "EE309 vs Automatica UPM");
 
     // Linea separadora
     glColor3f(0.5f, 0.0f, 0.8f);
@@ -55,7 +61,7 @@ void Menu::dibujarMenuPrincipal() {
     } else {
         glColor3f(1.0f, 1.0f, 1.0f);
     }
-    dibujarTexto(-0.5f, 1.0f, "JUGAR");
+    dibujarTexto(-0.5f, 1.0f, 0.1f, "JUGAR");
 
     // RANKING
     if (opcionSeleccionada == OpcionMenu::RANKING) {
@@ -63,7 +69,7 @@ void Menu::dibujarMenuPrincipal() {
     } else {
         glColor3f(1.0f, 1.0f, 1.0f);
     }
-    dibujarTexto(-0.7f, 0.0f, "RANKING");
+    dibujarTexto(-0.7f, 0.0f, 0.1f, "RANKING");
 
     // INSTRUCCIONES
     if (opcionSeleccionada == OpcionMenu::INSTRUCCIONES) {
@@ -71,7 +77,7 @@ void Menu::dibujarMenuPrincipal() {
     } else {
         glColor3f(1.0f, 1.0f, 1.0f);
     }
-    dibujarTexto(-1.2f, -1.0f, "INSTRUCCIONES");
+    dibujarTexto(-1.2f, -1.0f, 0.1f ,"INSTRUCCIONES");
 
     // SALIR
     if (opcionSeleccionada == OpcionMenu::SALIR) {
@@ -79,13 +85,13 @@ void Menu::dibujarMenuPrincipal() {
     } else {
         glColor3f(1.0f, 1.0f, 1.0f);
     }
-    dibujarTexto(-0.5f, -2.0f, "SALIR");
+    dibujarTexto(-0.5f, -2.0f, 0.1f, "SALIR");
 
     glColor3f(0.5f, 0.5f, 0.5f);
-    dibujarTexto(-3.5f, -4.5f, "Haz clic en una opcion o usa ENTER");
+    dibujarTexto(-3.5f, -4.5f, 0.1f, "Haz clic en una opcion o usa ENTER");
 }
 
-void Menu::dibujarSeleccionNivel() {
+/* d Menu::dibujarSeleccionNivel() {
     glColor3f(0.05f, 0.05f, 0.1f);
     glBegin(GL_QUADS);
     glVertex3f(-5.0f, -5.0f, 0.0f);
@@ -137,9 +143,61 @@ void Menu::dibujarSeleccionNivel() {
     dibujarTexto(-3.5f, -3.5f, "Haz clic o usa 1 2 3 para elegir");
     dibujarTexto(-3.5f, -4.2f, "ENTER para confirmar - ESC para volver");
     glEnd();
+}*/
+void Menu::dibujarSeleccionNivel() {
+    glBegin(GL_QUADS);
+    glColor3f(0.05f, 0.05f, 0.1f);
+    glVertex3f(-5.0f, -5.0f, 0.0f);
+    glVertex3f(5.0f, -5.0f, 0.0f);
+    glVertex3f(5.0f, 5.0f, 0.0f);
+    glVertex3f(-5.0f, 5.0f, 0.0f);
+    glEnd();
+
+    dibujarTexto(-2.0f, 3.0f, 0.1f, "SELECCIONA NIVEL");
+
+    glColor3f(0.0f, 1.0f, 0.0f);
+    dibujarTexto(-0.7f, 1.2f, 0.1f, "1 - FACIL");
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-0.7f, 0.0f, 0.1f, "2 - MEDIO");
+    glColor3f(1.0f, 0.2f, 0.2f);
+    dibujarTexto(-0.7f, -1.2f, 0.1f, "3 - DIFICIL");
+    glColor3f(0.5f, 0.5f, 0.5f);
+    dibujarTexto(-3.5f, -4.2f, 0.1f, "ENTER confirma - ESC vuelve");
 }
 
 void Menu::dibujarInstrucciones() {
+    glBegin(GL_QUADS);
+    glColor3f(0.05f, 0.05f, 0.1f);
+    glVertex3f(-5.0f, -5.0f, 0.0f);
+    glVertex3f(5.0f, -5.0f, 0.0f);
+    glVertex3f(5.0f, 5.0f, 0.0f);
+    glVertex3f(-5.0f, 5.0f, 0.0f);
+    glEnd();
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-1.5f, 4.0f, 0.1f, "INSTRUCCIONES");
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, 2.8f, 0.1f, "TABLERO:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, 2.2f, 0.1f, "Click izquierdo - seleccionar pieza");
+    dibujarTexto(-4.0f, 1.6f, 0.1f, "Click en circulo verde - mover pieza");
+    dibujarTexto(-4.0f, 1.0f, 0.1f, "ESC - volver al menu");
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, 0.2f, 0.1f, "BATALLA:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, -0.4f, 0.1f, "WASD - mover tu pieza");
+    dibujarTexto(-4.0f, -1.0f, 0.1f, "F - atacar cuando el circulo este verde");
+    dibujarTexto(-4.0f, -1.6f, 0.1f, "ESC - volver al menu");
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, -2.4f, 0.1f, "OBJETIVO:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, -3.0f, 0.1f, "Controla los 5 puntos de poder");
+    dibujarTexto(-4.0f, -3.6f, 0.1f, "o elimina todas las piezas rivales");
+    glColor3f(0.5f, 0.5f, 0.5f);
+    dibujarTexto(-2.0f, -4.5f, 0.1f, "ESC para volver al menu");
+}
+
+/*                                      
     glColor3f(0.05f, 0.05f, 0.1f);
     glBegin(GL_QUADS);
     glVertex3f(-5.0f, -5.0f, 0.0f);
@@ -192,7 +250,62 @@ void Menu::dibujarInstrucciones() {
     glColor3f(0.5f, 0.5f, 0.5f);
     dibujarTexto(-2.0f, -4.7f, "ESC para volver al menu");
     glEnd();
-}
+} 
+void Menu::dibujarInstrucciones() {
+    // Fondo oscuro
+    glColor3f(0.05f, 0.05f, 0.1f);
+    glBegin(GL_QUADS);
+    glVertex3f(-5.0f, -5.0f, 0.0f);
+    glVertex3f(5.0f, -5.0f, 0.0f);
+    glVertex3f(5.0f, 5.0f, 0.0f);
+    glVertex3f(-5.0f, 5.0f, 0.0f);
+    glEnd(); // <- aqui va el glEnd del fondo
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-1.5f, 4.0f, "INSTRUCCIONES");
+
+    glColor3f(0.5f, 0.0f, 0.8f);
+    glBegin(GL_LINES);
+    glVertex3f(-4.0f, 3.5f, 0.0f);
+    glVertex3f(4.0f, 3.5f, 0.0f);
+    glEnd();
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, 2.8f, "TABLERO:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, 2.2f, "Click izquierdo - seleccionar pieza");
+    dibujarTexto(-4.0f, 1.6f, "Click en circulo verde - mover pieza");
+    dibujarTexto(-4.0f, 1.0f, "ESC - volver al menu");
+
+    glColor3f(0.5f, 0.0f, 0.8f);
+    glBegin(GL_LINES);
+    glVertex3f(-4.0f, 0.6f, 0.0f);
+    glVertex3f(4.0f, 0.6f, 0.0f);
+    glEnd();
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, 0.0f, "BATALLA:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, -0.6f, "WASD - mover tu pieza");
+    dibujarTexto(-4.0f, -1.2f, "F - atacar cuando el circulo este verde");
+    dibujarTexto(-4.0f, -1.8f, "ESC - volver al menu");
+
+    glColor3f(0.5f, 0.0f, 0.8f);
+    glBegin(GL_LINES);
+    glVertex3f(-4.0f, -2.3f, 0.0f);
+    glVertex3f(4.0f, -2.3f, 0.0f);
+    glEnd();
+
+    glColor3f(1.0f, 0.85f, 0.0f);
+    dibujarTexto(-4.0f, -2.9f, "OBJETIVO:");
+    glColor3f(0.8f, 0.8f, 0.8f);
+    dibujarTexto(-4.0f, -3.5f, "Controla los 5 puntos de poder");
+    dibujarTexto(-4.0f, -4.1f, "o elimina todas las piezas rivales");
+
+    glColor3f(0.5f, 0.5f, 0.5f);
+    dibujarTexto(-2.0f, -4.7f, "ESC para volver al menu");
+    // sin glEnd() aqui - no hay ningún glBegin abierto
+} */
 
 void Menu::gestionRaton(int boton, int estado, float glX, float glY) {
     if (boton != GLUT_LEFT_BUTTON || estado != GLUT_UP) return;

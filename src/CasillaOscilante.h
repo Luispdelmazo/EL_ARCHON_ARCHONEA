@@ -1,5 +1,5 @@
 #pragma once
-#include "Casillas.h"
+#include "Casilla.h"
 
 // CasillaOscilante - hereda de Casilla
 // Igual que EsferaPulsante heredaba de Esfera en el Pang 

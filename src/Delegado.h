@@ -1,64 +1,86 @@
 #pragma once
 #include "Pieza.h"
 #include <GL/glut.h> 
-
-// Delegado - Lider de los alumnos EE309
-// Hereda de Pieza con : public Pieza - ES una Pieza, no TIENE una Pieza 
-// Teletransporte: puede ir a cualquier casilla del tablero
-// Los conjuros son atributos suyos - no hace falta una clase aparte 
+#include "ETSIDI.h"
 
 class Delegado : public Pieza {
 private:
     int conjurosRestantes;
-    bool conjuroUsado[7]; // Cada conjuro solo se puede usar una vez por partida
+    bool conjuroUsado[7];
 
 public:
+    mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/alumnos/delegado_idle1.png",  1 };
+    mutable ETSIDI::SpriteSequence spriteWalk{ "imagenes/alumnos/delegado_walk.png",   1 };
+    mutable ETSIDI::SpriteSequence spriteAtaque{ "imagenes/alumnos/delegado_ataque.png", 5 };
+    mutable ETSIDI::SpriteSequence spriteEspecial{ "imagenes/alumnos/delegado_especial.png", 5 };
+    mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
+
     Delegado(int fila, int col)
         : Pieza("Delegado", Bando::LUZ, TipoMovimiento::TELETRANSPORTE,
-                fila, col, 100, 20, 3, 9, 2)
+            fila, col, 250, 50, 3, 3, 4)
     {
         conjurosRestantes = 7;
-        for (int i = 0; i < 7; i++) {
-            conjuroUsado[i] = false;
-        }
+        for (int i = 0; i < 7; i++) conjuroUsado[i] = false;
     }
 
-    void dibujar() override {
+ /*   void dibujar() const override {
         float x = -4.5f + col * 1.0f + 0.5f;
         float y = -4.5f + fila * 1.0f + 0.5f;
 
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glMatrixMode(GL_PROJECTION); glPushMatrix();
+        glMatrixMode(GL_MODELVIEW);  glPushMatrix();
+
+        glTranslatef(x, y, 0.2f);
+        if (estaSeleccionada) glColor3f(1.0f, 1.0f, 0.0f);
+        else                  glColor3f(1.0f, 1.0f, 1.0f);
+
+        spriteActual->setCenter(1, 0);
+        spriteActual->setSize(0.9f, 0.9f);
+
+        spriteActual->draw();
+        spriteActual->loop();
+
+        glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+        glMatrixMode(GL_PROJECTION); glPopMatrix();
+        glPopAttrib();
+
+        glDisable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+    } */
+    void dibujar() const override {
+        // 1. Calculamos la posición exacta en el plano del tablero (-4.5f a 4.5f)
+        float x = -4.5f + col * 1.0f + 0.5f;
+        float y = -4.5f + fila * 1.0f + 0.5f;
+
+        // 2. Usamos el empuje de matriz clásico para movernos a la casilla
         glPushMatrix();
         glTranslatef(x, y, 0.2f);
 
-        // Anillo dorado debajo - marca que es el lider
-        glColor3f(1.0f, 0.85f, 0.0f);
-        glPushMatrix();
-        glScalef(1.0f, 0.2f, 1.0f);
-        glutSolidSphere(0.42f, 20, 20);
-        glPopMatrix();
+        // 3. Aplicamos el color de selección si el usuario la pincha
+        if (estaSeleccionada) glColor3f(1.0f, 1.0f, 0.0f);
+        else                  glColor3f(1.0f, 1.0f, 1.0f);
 
-        // Esfera principal azul - mas grande que el resto
-        if (estaSeleccionada) {
-            glColor3f(1.0f, 1.0f, 0.0f);
-        } else {
-            glColor3f(0.2f, 0.4f, 1.0f);
-        }
-        glutSolidSphere(0.38f, 20, 20);
+        // 4. CONFIGURACIÓN DEL SPRITE: Volvemos a los valores métricos
+        spriteActual->setCenter(0.5f, 0.5f); // Centrado absoluto en el origen de la traslación
+        spriteActual->setSize(0.9f, 0.9f);   // Tamaño relativo a 1 casilla de ancho
 
+        // 5. Dibujamos el gráfico
+        spriteActual->draw();
+        spriteActual->loop();
+
+        // 6. Liberamos la matriz para la siguiente casilla
         glPopMatrix();
     }
+    void habilidadEspecial() override { spriteActual = &spriteEspecial; }
 
-    void habilidadEspecial() override {
-        // Los conjuros se lanzan desde Juego con usarConjuro()
-    }
-
-    // Comprueba si un conjuro esta disponible
+    // estos metodos estaban fuera de la clase por error - ahora dentro
     bool puedeUsarConjuro(int indice) {
         if (indice < 0 || indice >= 7) return false;
         return !conjuroUsado[indice];
     }
 
-    // Marca el conjuro como usado
     void usarConjuro(int indice) {
         if (puedeUsarConjuro(indice)) {
             conjuroUsado[indice] = true;
@@ -67,4 +89,5 @@ public:
     }
 
     int getConjurosRestantes() const { return conjurosRestantes; }
-};
+
+};  
