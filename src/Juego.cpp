@@ -275,10 +275,18 @@ void Juego::gestionRaton(int boton, int estado, int x, int y) {
             if (tablero.hayEnemigo(fila, col, turnoActual)) {
                 filaDestinoBatalla = fila;
                 colDestinoBatalla  = col;
-                Pieza* atacante = tablero.getPieza(tablero.getFilaSeleccionada(),
-                                                   tablero.getColSeleccionada());
-                Pieza* defensor = tablero.getPieza(fila, col);
-                iniciarBatalla(atacante, defensor);
+                if (turnoActual == Bando::LUZ) {
+                    Pieza* alumno = tablero.getPieza(tablero.getFilaSeleccionada(),
+                                                     tablero.getColSeleccionada());
+                    Pieza* profesor = tablero.getPieza(fila, col);
+                    iniciarBatalla(alumno, profesor);
+                } else {
+                    Pieza* profesor = tablero.getPieza(tablero.getFilaSeleccionada(),
+                        tablero.getColSeleccionada());
+                    Pieza* alumno = tablero.getPieza(fila, col);
+                    iniciarBatalla(alumno, profesor);
+                }
+                
             } else {
                 tablero.moverPiezaSeleccionada(fila, col);
                 cambiarTurno();
@@ -339,18 +347,17 @@ void Juego::gestionTeclado(unsigned char tecla, int x, int y) {
 
 void Juego::gestionTecladoSuelto(unsigned char tecla, int x, int y) {
     if (estadoActual == EstadoJuego::BATALLA) {
-        batalla.gestionTecladoSuelto(tecla);
+        //batalla.gestionTecladoSuelto(tecla);
     }
 }
 
 // INICIAR BATALLA
-void Juego::iniciarBatalla(Pieza* atacante, Pieza* defensor) {
+void Juego::iniciarBatalla(Pieza* alumno, Pieza* profesor) {
     // guardar posicion del atacante aqui - despues getFilaSeleccionada() vale -1
     filaAtacanteBatalla = tablero.getFilaSeleccionada();
     colAtacanteBatalla = tablero.getColSeleccionada();
-
     estadoActual = EstadoJuego::BATALLA;
-    batalla.iniciar(atacante, defensor);
+    batalla.iniciar(alumno, profesor);
 }
 
 // TERMINAR BATALLA
@@ -362,22 +369,38 @@ void Juego::terminarBatalla() {
     int filaAtacante = filaAtacanteBatalla;
     int colAtacante = colAtacanteBatalla;
 
-    if (batalla.getEstado() == EstadoBatalla::GANA_ATACANTE) {
-        // el defensor muere, el atacante ocupa su casilla
-        tablero.eliminarPieza(filaDestinoBatalla, colDestinoBatalla);
-        tablero.moverPieza(filaAtacante, colAtacante,
-            filaDestinoBatalla, colDestinoBatalla);
+    if (batalla.getEstado() == EstadoBatalla::GANA_ALUMNO) {
+        // el profesor muere, el alumno se queda en la casilla disputada
+        if (turnoActual == Bando::LUZ) {
+            tablero.eliminarPieza(filaDestinoBatalla, colDestinoBatalla);
+            tablero.moverPieza(filaAtacante, colAtacante,
+                  filaDestinoBatalla, colDestinoBatalla);
+        }
+        else {
+            tablero.eliminarPieza(filaAtacante, colAtacante);
+        }
+        
     }
-    else if (batalla.getEstado() == EstadoBatalla::GANA_DEFENSOR) {
-        // el atacante muere, el defensor se queda donde estaba
+    else if (batalla.getEstado() == EstadoBatalla::GANA_PROFESOR) {
+        if (turnoActual == Bando::OSCURIDAD) {
+            tablero.eliminarPieza(filaDestinoBatalla, colDestinoBatalla);
+            tablero.moverPieza(filaAtacante, colAtacante,
+                  filaDestinoBatalla, colDestinoBatalla);
+        }
+        else {
+            tablero.eliminarPieza(filaAtacante, colAtacante);
+        }
+    }
+    else if (batalla.getEstado() == EstadoBatalla::EMPATE) {
+        tablero.eliminarPieza(filaDestinoBatalla, colDestinoBatalla);
         tablero.eliminarPieza(filaAtacante, colAtacante);
     }
 
     // restaurar vida completa al ganador para la siguiente batalla
-    if (batalla.getEstado() == EstadoBatalla::GANA_ATACANTE && batalla.getAtacante() != nullptr)
-        batalla.getAtacante()->curar(9999);
-    if (batalla.getEstado() == EstadoBatalla::GANA_DEFENSOR && batalla.getDefensor() != nullptr)
-        batalla.getDefensor()->curar(9999);
+    //if (batalla.getEstado() == EstadoBatalla::GANA_ATACANTE && batalla.getAtacante() != nullptr)
+       // batalla.getAtacante()->curar(9999);
+    //if (batalla.getEstado() == EstadoBatalla::GANA_DEFENSOR && batalla.getDefensor() != nullptr)
+        //batalla.getDefensor()->curar(9999);
 
     tablero.deseleccionar();
     cambiarTurno();
@@ -414,32 +437,32 @@ void Juego::comprobarVictoria() {
 void Juego::dibujarPantallaFin() {
     glColor3f(0.05f, 0.05f, 0.1f);
     glBegin(GL_QUADS);
-    glVertex3f(-5.0f, -5.0f, 0.0f);
-    glVertex3f( 5.0f, -5.0f, 0.0f);
-    glVertex3f( 5.0f,  5.0f, 0.0f);
-    glVertex3f(-5.0f,  5.0f, 0.0f);
+    glVertex3f(-5.0f, -5.0f, 0.1f);
+    glVertex3f( 5.0f, -5.0f, 0.1f);
+    glVertex3f( 5.0f,  5.0f, 0.1f);
+    glVertex3f(-5.0f,  5.0f, 0.1f);
     glEnd();
 
     if (ganador == Bando::LUZ) {
         glColor3f(1.0f, 0.85f, 0.0f);
-        dibujarTexto(-2.5, 1.5f, "GANAN LOS ALUMNOS EE309!");
-        dibujarTexto(-2.0, 0.5f, "Los profes suspenden en el tablero");
+        dibujarTexto(-2.5, 1.5f,0.11f, "GANAN LOS ALUMNOS EE309!");
+        dibujarTexto(-2.0, 0.5f,0.11f, "Los profes suspenden en el tablero");
     } else {
         glColor3f(0.5f, 0.0f, 0.8f);
-        dibujarTexto(-2.5, 1.5f, "GANA EL DEPARTAMENTO!");
-        dibujarTexto(-2.0, 0.5f, "Te vas a julio amigo...");
+        dibujarTexto(-2.5, 1.5f,0.11f, "GANA EL DEPARTAMENTO!");
+        dibujarTexto(-2.0, 0.5f,0.11f, "Te vas a julio amigo...");
     }
 
     glColor3f(0.7f, 0.7f, 0.7f);
     std::string textoTurnos = std::to_string(turnosJugados) + " turnos jugados";
-    dibujarTexto(-1.5f, -0.5f, textoTurnos);
+    dibujarTexto(-1.5f, -0.5f,0.11f, textoTurnos);
 
     glColor3f(0.5f, 0.5f, 0.5f);
-    dibujarTexto(-2.5f, -2.0f, "Pulsa ENTER para volver al menu");
+    dibujarTexto(-2.5f, -2.0f,0.11f, "Pulsa ENTER para volver al menu");
 }
 
-void Juego::dibujarTexto(float x, float y, std::string texto) {
-    glRasterPos2f(x, y);
+void Juego::dibujarTexto(float x, float y, float z, std::string texto) {
+    glRasterPos3f(x, y, z);
     for (int i = 0; i < (int)texto.size(); i++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, texto[i]);
     }

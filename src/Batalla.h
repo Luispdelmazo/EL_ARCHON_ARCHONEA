@@ -13,8 +13,9 @@ enum class DificultadIA {
 // segun quien invade la casilla de quien
 enum class EstadoBatalla {
     EN_CURSO,
-    GANA_ATACANTE,
-    GANA_DEFENSOR
+    GANA_ALUMNO,
+    GANA_PROFESOR,
+    EMPATE
 };
 
 // CLASE: Batalla
@@ -26,22 +27,22 @@ class Batalla {
 private:
     // Las dos piezas que combaten
     // Son punteros a Pieza pero se comportan como lo que son (polimorfismo)
-    Pieza* atacante;    // Pieza que se mueve a la casilla
-    Pieza* defensor;    // Pieza que estaba en la casilla
+    Pieza* alumno;    // Pieza que se mueve a la casilla
+    Pieza* profesor;    // Pieza que estaba en la casilla
 
     // posiciones dentro de la arena
-    float xAtacante, yAtacante;
-    float xDefensor, yDefensor;
+    float xAlumno, yAlumno;
+    float xProfesor, yProfesor;
 
     // velocidades de movimiento en la arena
-    float vxAtacante, vyAtacante;
-    float vxDefensor, vyDefensor;
+    float vxAlumno, vyAlumno;
+    float vxProfesor, vyProfesor;
 
-    float timerAtaqueAtacante;
-    float timerAtaqueDefensor;
+    float timerAtaqueAlumno;
+    float timerAtaqueProfesor;
 
     // indica si el jugador puede atacar ahora - se muestra con circulo verde
-    bool puedeAtacarAtacante;
+    bool puedeAtacarAlumno;
 
     // estado actual de la batalla
     EstadoBatalla estado;
@@ -60,8 +61,8 @@ private:
     static const int NUM_PIEDRAS = 6;
     Piedra piedras[NUM_PIEDRAS];
     // uno por bando, igual que en el ARCHON origina solo puede haber un proyectil activo por pieza a la vez
-    Proyectil proyectilAtacante;
-    Proyectil proyectilDefensor;
+    Proyectil proyectilAlumno;
+    Proyectil proyectilProfesor;
 
     void dibujarArena();
     void dibujarBarrasDeVida();
@@ -75,7 +76,7 @@ private:
 
 public:
     Batalla();
-    void iniciar(Pieza* atac, Pieza* def);
+    void iniciar(Pieza* alum, Pieza* prof);
     void setDificultad(DificultadIA d) { dificultad = d; }
     DificultadIA getDificultad() const { return dificultad; }
     void dibujar();
@@ -83,6 +84,6 @@ public:
     void gestionTeclado(unsigned char tecla);
     void gestionTecladoSuelto(unsigned char tecla);
     EstadoBatalla getEstado()  const { return estado; }
-    Pieza* getAtacante()       const { return atacante; }
-    Pieza* getDefensor()       const { return defensor; }
+    Pieza* getAlumno()       const { return alumno; }
+    Pieza* getProfesor()       const { return profesor; }
 };

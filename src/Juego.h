@@ -34,7 +34,7 @@ private:
 
     // metodos privados
     void dibujarPantallaFin();
-    void dibujarTexto(float x, float y, std::string texto);
+    void dibujarTexto(float x, float y, float z, std::string texto);
     void comprobarVictoria();
 
 public:
