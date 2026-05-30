@@ -367,6 +367,37 @@ void Menu::gestionTeclado(unsigned char tecla) {
     if (tecla == 27) {
         exit(0);
     }
+
+    if (estadoMenu == EstadoMenu::PRINCIPAL) {
+        if (tecla == 'w') {
+			if (opcionSeleccionada == OpcionMenu::JUGAR) {
+				opcionSeleccionada = OpcionMenu::SALIR;
+			}
+			else if (opcionSeleccionada == OpcionMenu::RANKING) {
+				opcionSeleccionada = OpcionMenu::JUGAR;
+			}
+			else if (opcionSeleccionada == OpcionMenu::INSTRUCCIONES) {
+				opcionSeleccionada = OpcionMenu::RANKING;
+			}
+			else if (opcionSeleccionada == OpcionMenu::SALIR) {
+				opcionSeleccionada = OpcionMenu::INSTRUCCIONES;
+			}
+        }
+		if (tecla == 's') {
+			if (opcionSeleccionada == OpcionMenu::JUGAR) {
+				opcionSeleccionada = OpcionMenu::RANKING;
+			}
+			else if (opcionSeleccionada == OpcionMenu::RANKING) {
+				opcionSeleccionada = OpcionMenu::INSTRUCCIONES;
+			}
+			else if (opcionSeleccionada == OpcionMenu::INSTRUCCIONES) {
+				opcionSeleccionada = OpcionMenu::SALIR;
+			}
+			else if (opcionSeleccionada == OpcionMenu::SALIR) {
+				opcionSeleccionada = OpcionMenu::JUGAR;
+			}
+		}
+    }
 }
 
 OpcionMenu Menu::getOpcionSeleccionada() const {

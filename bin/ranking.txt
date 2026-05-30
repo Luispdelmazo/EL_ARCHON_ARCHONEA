@@ -1,2 +1,5 @@
 EE309 9
 EE309 9
+EE309 9
+Automatica 10
+EE309 22

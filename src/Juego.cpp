@@ -22,7 +22,7 @@ Juego::Juego() : tablero{ Tablero(1.0f, -4.5f, -4.5f) }
 {
     estadoActual       = EstadoJuego::MENU;
     turnoActual        = Bando::LUZ;
-    juegoTerminado     = false;
+    //juegoTerminado     = false;
     ganador            = Bando::LUZ;
     filaDestinoBatalla = -1;
     colDestinoBatalla  = -1;
@@ -36,7 +36,7 @@ Juego::Juego() : tablero{ Tablero(1.0f, -4.5f, -4.5f) }
 
 void Juego::inicializar() {
     turnosJugados = 0;
-    juegoTerminado = false;
+    //juegoTerminado = false;
 
     //  BANDO LUZ - columna izquierda (col 0) + peones en col 1 
     tablero.colocarPieza(new Ocupado(0, 0), 0, 0);
@@ -126,10 +126,10 @@ void Juego::dibujar() {
    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (juegoTerminado) {
+    /*if (juegoTerminado) {
         dibujarPantallaFin();
         return;
-    }
+    }*/
 
     switch (estadoActual) {
     case EstadoJuego::MENU:
@@ -144,6 +144,21 @@ void Juego::dibujar() {
     case EstadoJuego::RANKING:
         ranking.dibujar();
         break;
+    case EstadoJuego::FIN_PARTIDA:
+		dibujarPantallaFin();
+		break;
+	case EstadoJuego::PAUSA_TABLERO:
+		tablero.dibujar(turnoActual);
+        glColor3f(1.0f, 0.0f, 0.0f);
+        dibujarTexto(-1.5, 0.25f, 0.11f, "Partida en pausa");
+        dibujarTexto(-1.5, -0.25f, 0.11f, "Pulsa -C- para continuar");
+		break;
+	case EstadoJuego::PAUSA_BATALLA:
+		batalla.dibujar();
+        glColor3f(1.0f, 0.0f, 0.0f);
+        dibujarTexto(-1.5, 0.25f, 0.11f, "Batalla en pausa");
+        dibujarTexto(-1.5, -0.25f, 0.11f, "Pulsa -C- para continuar");
+		break;
     }
 
     glutSwapBuffers();
@@ -198,8 +213,12 @@ void Juego::dibujar() {
 void Juego::cambiarTurno() {
     if (turnoActual == Bando::LUZ) {
         turnoActual = Bando::OSCURIDAD;
+        tablero.setFilaTeclado(4);
+		tablero.setColTeclado(8);
     } else {
         turnoActual = Bando::LUZ;
+        tablero.setFilaTeclado(4);
+        tablero.setColTeclado(0);
     }
     tablero.cambiarColorOscilantes();
     turnosJugados++;
@@ -235,7 +254,7 @@ void Juego::convertirCoordenadas(int pixelX, int pixelY, float& glX, float& glY)
 
 // GESTION RATON
 void Juego::gestionRaton(int boton, int estado, int x, int y) {
-    if (juegoTerminado) return;
+    if (estadoActual == EstadoJuego::FIN_PARTIDA) return;
 
     float glX, glY;
     convertirCoordenadas(x, y, glX, glY);
@@ -299,9 +318,9 @@ void Juego::gestionRaton(int boton, int estado, int x, int y) {
 
 // GESTION TECLADO
 void Juego::gestionTeclado(unsigned char tecla, int x, int y) {
-    if (juegoTerminado) {
+    if (estadoActual == EstadoJuego::FIN_PARTIDA) {
         if (tecla == 13) {
-            juegoTerminado = false;
+            //juegoTerminado = false;
             estadoActual   = EstadoJuego::MENU;
             glutPostRedisplay();
         }
@@ -309,19 +328,51 @@ void Juego::gestionTeclado(unsigned char tecla, int x, int y) {
     }
 
     if (tecla == 27) { // ESC
-        if (estadoActual == EstadoJuego::TABLERO  ||
-            estadoActual == EstadoJuego::BATALLA  ||
+        if (estadoActual == EstadoJuego::BATALLA  ||
             estadoActual == EstadoJuego::RANKING) {
             estadoActual = EstadoJuego::MENU;
             menu.haSeleccionado = false;
             glutPostRedisplay();
             return;
-        } else {
+        }
+        else if(estadoActual == EstadoJuego::TABLERO) {
+            if (tablero.tieneSeleccion()) {
+				tablero.deseleccionar();
+            }
+            else {
+                estadoActual = EstadoJuego::MENU;
+                menu.haSeleccionado = false;
+                glutPostRedisplay();
+                return;  
+            }
+        }
+        else {
             menu.gestionTeclado(tecla); // deja que el menu gestione el ESC
             glutPostRedisplay();
             return;
         }
     }
+	if (estadoActual == EstadoJuego::TABLERO && tecla == 'p') {
+		estadoActual = EstadoJuego::PAUSA_TABLERO;
+		glutPostRedisplay();
+		return;
+	} 
+    if (estadoActual == EstadoJuego::BATALLA && tecla == 'p') {
+        estadoActual = EstadoJuego::PAUSA_BATALLA;
+        glutPostRedisplay();
+        return;
+    }
+    if (estadoActual == EstadoJuego::PAUSA_TABLERO && tecla == 'c') {
+        estadoActual = EstadoJuego::TABLERO;
+        glutPostRedisplay();
+        return;
+    }
+    if(estadoActual == EstadoJuego::PAUSA_BATALLA && tecla == 'c') {
+        estadoActual = EstadoJuego::BATALLA;
+        glutPostRedisplay();
+        return;
+    }
+
 
     if (estadoActual == EstadoJuego::MENU) {
         menu.gestionTeclado(tecla);
@@ -342,6 +393,40 @@ void Juego::gestionTeclado(unsigned char tecla, int x, int y) {
 
     if (estadoActual == EstadoJuego::BATALLA) {
         batalla.gestionTeclado(tecla);
+    }
+
+    if (estadoActual == EstadoJuego::TABLERO) {
+		tablero.gestionTeclado(tecla, turnoActual);
+        if (tecla == 13) { // Enter
+            if (!tablero.tieneSeleccion()) {
+                tablero.seleccionarPieza(tablero.getFilaTeclado(), tablero.getColTeclado(), turnoActual);
+            }
+            else {
+                if (tablero.destinoEsValido(tablero.getFilaTeclado(), tablero.getColTeclado())) {
+                    if (tablero.hayEnemigo(tablero.getFilaTeclado(), tablero.getColTeclado(), turnoActual)) {
+                        if (turnoActual == Bando::LUZ) {
+                            Pieza* alumno = tablero.getPieza(tablero.getFilaSeleccionada(),
+                                                             tablero.getColSeleccionada());
+                            Pieza* profesor = tablero.getPieza(tablero.getFilaTeclado(), tablero.getColTeclado());
+                            iniciarBatalla(alumno, profesor);
+                        }
+                        else {
+                            Pieza* profesor = tablero.getPieza(tablero.getFilaSeleccionada(),
+                                                               tablero.getColSeleccionada());
+                            Pieza* alumno = tablero.getPieza(tablero.getFilaTeclado(), tablero.getColTeclado());
+                            iniciarBatalla(alumno, profesor);
+                        }   
+                    }
+                    else {
+                        tablero.moverPiezaSeleccionada(tablero.getFilaTeclado(), tablero.getColTeclado());
+                        cambiarTurno();
+                    }
+                }
+                tablero.deseleccionar();
+            }
+            glutPostRedisplay();
+        }
+
     }
 }
 
@@ -395,7 +480,7 @@ void Juego::terminarBatalla() {
         tablero.eliminarPieza(filaDestinoBatalla, colDestinoBatalla);
         tablero.eliminarPieza(filaAtacante, colAtacante);
     }
-
+    tablero.ActivarHabilidad(filaDestinoBatalla, colDestinoBatalla); 
     // restaurar vida completa al ganador para la siguiente batalla
     //if (batalla.getEstado() == EstadoBatalla::GANA_ATACANTE && batalla.getAtacante() != nullptr)
        // batalla.getAtacante()->curar(9999);
@@ -408,25 +493,25 @@ void Juego::terminarBatalla() {
 // COMPROBAR VICTORIA - las dos condiciones del ARCHON 
 void Juego::comprobarVictoria() {
     if (tablero.controlaPuntosDePoder(Bando::LUZ)) {
-        juegoTerminado = true;
+        estadoActual = EstadoJuego::FIN_PARTIDA;
         ganador        = Bando::LUZ;
         ranking.guardarResultado("EE309", turnosJugados);
         return;
     }
     if (tablero.controlaPuntosDePoder(Bando::OSCURIDAD)) {
-        juegoTerminado = true;
+        estadoActual = EstadoJuego::FIN_PARTIDA;
         ganador        = Bando::OSCURIDAD;
         ranking.guardarResultado("Automatica", turnosJugados);
         return;
     }
     if (tablero.contarPiezas(Bando::LUZ) == 0) {
-        juegoTerminado = true;
+        estadoActual = EstadoJuego::FIN_PARTIDA;
         ganador        = Bando::OSCURIDAD;
         ranking.guardarResultado("Automatica", turnosJugados);
         return;
     }
     if (tablero.contarPiezas(Bando::OSCURIDAD) == 0) {
-        juegoTerminado = true;
+        estadoActual = EstadoJuego::FIN_PARTIDA;
         ganador        = Bando::LUZ;
         ranking.guardarResultado("EE309", turnosJugados);
         return;

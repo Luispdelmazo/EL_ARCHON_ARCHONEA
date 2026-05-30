@@ -9,7 +9,10 @@ enum class EstadoJuego {
     MENU,
     TABLERO,
     BATALLA,
-    RANKING
+    RANKING,
+    FIN_PARTIDA,
+    PAUSA_TABLERO,
+	PAUSA_BATALLA
 };
 
 class Juego {
@@ -28,7 +31,7 @@ private:
     int filaAtacanteBatalla;  // donde estaba el atacante al iniciar la batalla
     int colAtacanteBatalla;
     // para la pantalla de fin y el ranking
-    bool  juegoTerminado;
+    //bool  juegoTerminado;
     Bando ganador;
     int   turnosJugados;
 

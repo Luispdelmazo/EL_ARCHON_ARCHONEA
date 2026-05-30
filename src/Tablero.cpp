@@ -35,6 +35,8 @@ Tablero::Tablero(float tamCasilla, float ox, float oy)
     filaSeleccionada = -1;
     colSeleccionada  = -1;
     haySeleccion     = false;
+    filaTeclado = 4;
+	colTeclado = 0;
 
     inicializarCasillas();
 }
@@ -273,8 +275,22 @@ void Tablero::dibujarCasillas() {
             glVertex3f(x + tamCasilla, y + tamCasilla, 0.01f);
             glVertex3f(x,              y + tamCasilla, 0.01f);
             glEnd();
+
+            
         }
     }
+
+    float xTeclado = offsetX + colTeclado * tamCasilla;
+    float yTeclado = offsetY + filaTeclado * tamCasilla;
+    //Línea naranja fina para marcar la casilla posicionada para teclado
+    glColor3f(1.0f, 0.5f, 0.0f);
+    glLineWidth(2.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(xTeclado, yTeclado, 0.02f);
+    glVertex3f(xTeclado + tamCasilla, yTeclado, 0.02f);
+    glVertex3f(xTeclado + tamCasilla, yTeclado + tamCasilla, 0.02f);
+    glVertex3f(xTeclado, yTeclado + tamCasilla, 0.02f);
+    glEnd();
 }
 
 // DIBUJAR PUNTOS DE PODER
@@ -486,6 +502,12 @@ void Tablero::seleccionarPieza(int fila, int col, Bando turno) {
     colSeleccionada = col;
     haySeleccion = true;
 
+    // Debe actualizarse la posición por teclado para que coincida con la seleccionada
+    // Se evita mostrar 2 casillas seleccionadas a la vez (la de teclado y la elegida por ratón)
+    // En caso de deselección se podrá mover con el teclado 
+    filaTeclado = fila;
+	colTeclado = col;
+
     // Solo marcamos ocupadas las casillas con piezas del mismo bando para que getCasillasValidas sepa donde no puede ir
     bool ocupadas[9][9] = {};
 	bool enemigas[9][9] = {};
@@ -527,3 +549,24 @@ bool Tablero::moverPiezaSeleccionada(int filaDest, int colDest) {
 bool Tablero::tieneSeleccion() const { return haySeleccion; }
 int  Tablero::getFilaSeleccionada() const { return filaSeleccionada; }
 int  Tablero::getColSeleccionada()  const { return colSeleccionada; }
+
+void Tablero::gestionTeclado(unsigned char tecla, Bando turnoActual) {
+	if (tecla == 'w' || tecla == 'W') {
+        if (filaTeclado < 8) filaTeclado++;
+	}
+	else if (tecla == 's' || tecla == 'S') {
+        if (filaTeclado > 0) filaTeclado--;
+	}
+	else if (tecla == 'a' || tecla == 'A') {
+		if (colTeclado > 0) colTeclado--;
+	}
+	else if (tecla == 'd' || tecla == 'D') {
+		if (colTeclado < 8) colTeclado++;
+	}
+}
+
+void Tablero::ActivarHabilidad(int fila, int col) {
+	Pieza* pieza = piezas[fila][col];
+	if (pieza == nullptr) return;
+	pieza->habilidadEspecial();
+}

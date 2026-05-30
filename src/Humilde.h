@@ -1,4 +1,4 @@
-#pragma once
+  #pragma once
 #include "Pieza.h"
 //#include "glut.h"
 #include <GL/glut.h>

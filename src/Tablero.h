@@ -35,6 +35,10 @@ private:
     int colSeleccionada;
     bool haySeleccion;
 
+    // casilla en la que el jugador está posicionado por teclado previo a seleccionarla
+    int filaTeclado;
+    int colTeclado;
+
     // casillas validas para moverse
     std::vector<Coord> casillasValidas;//nose como poneerlo si no
 
@@ -64,6 +68,13 @@ public:
     bool tieneSeleccion() const;
     int  getFilaSeleccionada() const;
     int  getColSeleccionada()  const;
+	int  getFilaTeclado() const { return filaTeclado; }
+	int getColTeclado()  const { return colTeclado; }
+	// gestion con teclado
+	void gestionTeclado(unsigned char tecla, Bando turno);
+
+	void setFilaTeclado(int fila) { filaTeclado = fila; }
+	void setColTeclado(int col) { colTeclado = col; }
 
     // condiciones de victoria
     bool controlaPuntosDePoder(Bando bando);
@@ -79,4 +90,6 @@ public:
     float    getOffsetY()    const;
 
     bool pantallaATablero(float px, float py, int& filaOut, int& colOut);
+
+    void ActivarHabilidad(int fila, int col);
 };
