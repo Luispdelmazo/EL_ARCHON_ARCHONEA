@@ -9,8 +9,7 @@
 
 class HectorMontes : public Pieza {
 private:
-    float timerCuracion; // Timer para curar cada segundo
-
+    int controlAtaques; //guarda los ataques hasta este momento, para aumentar la vida cada vez que ataque
 public:
     mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/profesores/hmontes_idle1.png",  1 };
     mutable ETSIDI::SpriteSequence spriteWalk{ "imagenes/profesores/hmontes_walk.png",   1 };
@@ -21,7 +20,7 @@ public:
         : Pieza("HectorMontes", Bando::OSCURIDAD, TipoMovimiento::TERRESTRE,
                 fila, col, 300, 30, 3, 3, 1)
     {
-        timerCuracion = 0.0f;
+        controlAtaques = 0;
     }
 
  /*   void dibujar() override {
@@ -106,17 +105,26 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override { // recupera 1 punto de vida por segundo - se llama desde Batalla
-        curar(1);
+    void habilidadEnBatalla() override { // recupera 1 punto de vida por segundo - se llama desde Batalla
+        if(contadorAtaques-controlAtaques==1)
+        curar(5);
         spriteActual = &spriteEspecial;
+		controlAtaques = contadorAtaques;
+    }
+    void habilidadPostBatalla() override {
+		spriteActual = &spriteIdle;
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
     // Batalla llama a esto con dt para curar cada segundo
-    void actualizarCuracion(float dt) {
+    /* actualizarCuracion(float dt) {
         timerCuracion += dt;
         if (timerCuracion >= 1.0f) {
             curar(1);
             timerCuracion = 0.0f;
         }
-    }
+    }*/
 };

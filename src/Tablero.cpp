@@ -565,8 +565,8 @@ void Tablero::gestionTeclado(unsigned char tecla, Bando turnoActual) {
 	}
 }
 
-void Tablero::ActivarHabilidad(int fila, int col) {
+void Tablero::HabilidadPostBatalla(int fila, int col) {
 	Pieza* pieza = piezas[fila][col];
 	if (pieza == nullptr) return;
-	pieza->habilidadEspecial();
+	pieza->habilidadPostBatalla();
 }

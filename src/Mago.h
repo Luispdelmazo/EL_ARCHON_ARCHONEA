@@ -20,7 +20,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     Mago(int fila, int col)
         : Pieza("Mago", Bando::LUZ, TipoMovimiento::VOLADOR,
-            fila, col, 200, 30, 7, 5, 4)
+            fila, col, 200, 30, 3, 5, 4)
     {
         escudoActivo = true;
     }
@@ -75,7 +75,13 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override { spriteActual = &spriteEspecial; }
+    void habilidadPostBatalla() override { spriteActual = &spriteIdle; }
+    void habilidadEnBatalla() override {
+		// Se implementa en recibirDano, no aquí
+    }
+    void conjuros() override {
+        // No tiene conjuros
+    }
 
    /* void dibujar() override {
         float x = -4.5f + col * 1.0f + 0.5f;
@@ -112,6 +118,7 @@ public:
         if (escudoActivo && vidaActual - dano <= 0) {
             vidaActual   = 1;
             escudoActivo = false;
+            spriteActual = &spriteEspecial;
         } else {
             vidaActual -= dano;
             if (vidaActual <= 0) {

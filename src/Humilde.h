@@ -17,7 +17,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     Humilde(int fila, int col)
         : Pieza("Humilde", Bando::LUZ, TipoMovimiento::TERRESTRE,
-            fila, col, 100, 20, 5, 3, 1)
+            fila, col, 100, 20, 2, 3, 1)
     {}
 
     /*void dibujar() const override {
@@ -76,13 +76,20 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
+    void habilidadPostBatalla() override {
         // Al ganar sube sus stats - se vuelve mas fuerte con la experiencia
         ataque    += 5;
         vidaMax   += 10;
         velocidad += 1;
         spriteActual = &spriteEspecial;
     }
+    void habilidadEnBatalla() override {
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
+        // No tiene conjuros
+    }
+
     void loop() const override {
         spriteActual->loop();
     }

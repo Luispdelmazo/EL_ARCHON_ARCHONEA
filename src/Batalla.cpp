@@ -40,6 +40,10 @@ void Batalla::iniciar(Pieza* alum, Pieza* prof) {
     timerAtaqueAlumno = 1.0f;
     timerAtaqueProfesor = 1.0f;
     puedeAtacarAlumno = true;
+	alumno->resetAtaques();
+	profesor->resetAtaques();
+    alumno->resetFallos();
+    profesor->resetAtaques();
 
     // Piedras en posiciones fijas
     piedras[0] = { -2.0f,  1.5f };
@@ -360,6 +364,8 @@ void Batalla::actualizar(float dt) {
         timerAtaqueAlumno = 0.0f;
     }
 
+    alumno->habilidadEnBatalla();
+    profesor->habilidadEnBatalla();
     
 
     comprobarColisionesPiedras();
@@ -411,15 +417,15 @@ void Batalla::moverIA(float dt) {
     float intervaloAtaqueIA;
 
     if (dificultad == DificultadIA::FACIL) {
-        velIA = 2.0f;
+        velIA = (float)profesor->getVelocidad()*0.7f;
         intervaloAtaqueIA = 2.5f;
     }
     else if (dificultad == DificultadIA::MEDIO) {
-        velIA = 4.0f;
+        velIA = (float)profesor->getVelocidad();
         intervaloAtaqueIA = 1.5f;
     }
     else {
-        velIA = 6.0f;
+		velIA = (float)profesor->getVelocidad() * 1.5f;
         intervaloAtaqueIA = 0.8f;
     }
 
@@ -469,6 +475,7 @@ void Batalla::moverIA(float dt) {
             ddy * VEL_PROYECTIL
             );
             timerAtaqueProfesor = 0.0f;
+            profesor->nuevoAtaque();
         }
     }
 }
@@ -493,6 +500,7 @@ void Batalla::comprobarAtaques(bool jugadorAtaca) {
                 dy * VEL_PROYECTIL);
             puedeAtacarAlumno = false;
             timerAtaqueAlumno = 0.0f;
+            alumno->nuevoAtaque();
         }
     }
 }
@@ -516,8 +524,8 @@ void Batalla::comprobarColisionesProyectiles() {
         if (dist < 0.3f) {
             alumno->recibirDano(profesor->getAtaque());
             proyectilProfesor.setActivo(false);
-            printf("Proyectil ataca atacante - vida restante: %d/%d\n",
-            alumno->getVidaActual(), alumno->getVidaMax());
+            //printf("Proyectil ataca atacante - vida restante: %d/%d\n",
+            //alumno->getVidaActual(), alumno->getVidaMax());
         }
     }
 
@@ -526,14 +534,18 @@ void Batalla::comprobarColisionesProyectiles() {
         if (proyectilAlumno.getActivo()) {
             float dx = proyectilAlumno.getX() - piedras[i].x;
             float dy = proyectilAlumno.getY() - piedras[i].y;
-            if (sqrtf(dx * dx + dy * dy) < 0.35f)
+            if (sqrtf(dx * dx + dy * dy) < 0.35f) {
                 proyectilAlumno.setActivo(false);
+                alumno->nuevoFallo();
+            }
         }
         if (proyectilProfesor.getActivo()) {
             float dx = proyectilProfesor.getX() - piedras[i].x;
             float dy = proyectilProfesor.getY() - piedras[i].y;
-            if (sqrtf(dx * dx + dy * dy) < 0.35f)
+            if (sqrtf(dx * dx + dy * dy) < 0.35f) {
                 proyectilProfesor.setActivo(false);
+                profesor->nuevoFallo();
+            }
         }
     }
 }
@@ -558,10 +570,10 @@ void Batalla::gestionTeclado(unsigned char tecla) {
     if (estado != EstadoBatalla::EN_CURSO) return;
 
     switch (tecla) {
-        case 'w': case 'W': vyAlumno = 1.5f; break;
-        case 's': case 'S': vyAlumno = -1.5f; break;
-        case 'a': case 'A': vxAlumno = -1.5f; break;
-        case 'd': case 'D': vxAlumno = 1.5f; break;
+    case 'w': case 'W': vyAlumno = (float)alumno->getVelocidad(); break;
+        case 's': case 'S': vyAlumno = -(float)alumno->getVelocidad(); break;
+        case 'a': case 'A': vxAlumno = -(float)alumno->getVelocidad(); break;
+        case 'd': case 'D': vxAlumno = (float)alumno->getVelocidad(); break;
         case 'f': case 'F':
         comprobarAtaques(true);
         break;

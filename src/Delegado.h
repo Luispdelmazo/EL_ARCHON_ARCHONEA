@@ -73,7 +73,12 @@ public:
         // 6. Liberamos la matriz para la siguiente casilla
         glPopMatrix();
     }
-    void habilidadEspecial() override { spriteActual = &spriteEspecial; }
+    void habilidadPostBatalla() override { spriteActual = &spriteEspecial; }
+    void habilidadEnBatalla() override {
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
+    }
 
     // estos metodos estaban fuera de la clase por error - ahora dentro
     bool puedeUsarConjuro(int indice) {

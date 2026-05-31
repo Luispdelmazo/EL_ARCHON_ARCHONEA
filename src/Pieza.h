@@ -54,6 +54,9 @@ protected:
     bool estaViva;      // si ha sido eliminada
     bool estaSeleccionada; // si el jugador la ha seleccionado
 
+	int contadorAtaques; // para habilidades que dependen de turnos
+	int contadorFallos;   // para habilidades que dependen de fallos
+
 public:
     // CONSTRUCTOR
     Pieza(std::string nombre, Bando bando, TipoMovimiento tipoMov,
@@ -75,7 +78,9 @@ public:
     //virtual void dibujar() = 0;
     virtual void dibujar() const = 0;
     // ejecuta la habilidad especial del personaje
-    virtual void habilidadEspecial() = 0;
+    virtual void habilidadPostBatalla() = 0;
+	virtual void habilidadEnBatalla() = 0;
+	virtual void conjuros() = 0;
 
     
     // METODOS VIRTUALES (con implementacion base)
@@ -261,6 +266,10 @@ public:
     int getAlcanceAtaque() const { return alcanceAtaque; }
     bool getEstaViva() const { return estaViva; }
     bool getEstaSeleccionada() const { return estaSeleccionada; }
+	void nuevoAtaque() { contadorAtaques++; }
+	void resetAtaques() { contadorAtaques = 0; }
+	void nuevoFallo() { contadorFallos++; }
+	void resetFallos() { contadorFallos = 0; }
 
    
     void setPosicion(int nuevaFila, int nuevaCol) {

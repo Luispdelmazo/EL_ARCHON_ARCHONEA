@@ -19,7 +19,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     SanSegundo(int fila, int col)
         : Pieza("SanSegundo", Bando::OSCURIDAD, TipoMovimiento::VOLADOR,
-                fila, col, 200, 30, 5, 3, 2)
+                fila, col, 200, 30, 2, 3, 2)
     {
         divisionUsada = false;
     }
@@ -101,15 +101,21 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
-        spriteActual = &spriteEspecial;
+    void habilidadEnBatalla() override {
         // Division - sube sus stats al usarla
-        if (!divisionUsada) {
+        if (!divisionUsada && ((float)vidaActual/ (float)vidaMax) < 0.5f){
+            spriteActual = &spriteEspecial;
             vidaMax       += 20;
             vidaActual    += 20;
             ataque        += 5;
             divisionUsada  = true;
         }
+    }
+    void habilidadPostBatalla() override {
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
     bool getDivisionUsada() const { return divisionUsada; }

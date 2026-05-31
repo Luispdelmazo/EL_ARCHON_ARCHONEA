@@ -37,6 +37,7 @@ public:
 
     OpcionMenu   getOpcionSeleccionada() const;
     DificultadIA getDificultad()         const { return dificultadSeleccionada; }
+	void setEstadoSeleccionado(EstadoMenu opcion) { estadoMenu = opcion; }
 
     bool haSeleccionado;
 };

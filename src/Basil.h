@@ -11,6 +11,7 @@
 class Basil : public Pieza {
 private:
     int autoDanoAlFallar; // Se daña a si mismo si el ataque no alcanza al rival
+	int controlFallos; // Contador de fallos para activar el auto daño
 
 public:
     mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/profesores/basil_idle1.png",  1 };
@@ -20,7 +21,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     Basil(int fila, int col)
         : Pieza("Basil", Bando::OSCURIDAD, TipoMovimiento::VOLADOR,
-                fila, col, 200, 30, 7, 5, 4)
+                fila, col, 200, 30, 3, 5, 4)
     {
         autoDanoAlFallar = 5;
     }
@@ -101,10 +102,31 @@ public:
 
         glPopMatrix();
     }
-    void habilidadEspecial() override {
-        // Ataque potente - si falla se daña a si mismo
+    void habilidadEnBatalla() override {
+        // Un ataque potente de cada 3 - si golpea a una piedra se inflinge daño a si mismo
         // Se gestiona en Batalla
-        spriteActual = &spriteEspecial;
+        if (contadorAtaques == 0) ataque = 30;
+        if ((contadorAtaques + 1) % 5 == 0 && contadorAtaques > 0) {
+            spriteActual = &spriteEspecial;
+        }
+        else if (contadorAtaques % 5 == 0 && contadorAtaques > 0) {
+            ataque = 60;
+            spriteActual = &spriteIdle;
+        }
+        else if ((contadorAtaques - 1) % 5 == 0 && contadorAtaques > 5) {
+            ataque = 30;
+        }
+
+        if (contadorFallos - controlFallos == 1)
+            recibirDano(autoDanoAlFallar);
+        controlFallos = contadorFallos;
+    }
+    void habilidadPostBatalla() override {
+        // No tiene habilidad post movimiento
+		spriteActual = &spriteIdle;
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
     int getAutoDano() const { return autoDanoAlFallar; }

@@ -91,5 +91,7 @@ public:
 
     bool pantallaATablero(float px, float py, int& filaOut, int& colOut);
 
-    void ActivarHabilidad(int fila, int col);
+    void HabilidadPostBatalla(int fila, int col);
+	void HabilidadEnBatalla(int fila, int col);
+	void Conjuros(int fila, int col);
 };

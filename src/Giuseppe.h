@@ -8,6 +8,7 @@
 // Visual: cubo morado con borde negro - serio y estricto
 
 class Giuseppe : public Pieza {
+    bool escudoActivo;
 public:
     mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/profesores/giuseppe_idle1.png",  1 };
     mutable ETSIDI::SpriteSequence spriteWalk{ "imagenes/profesores/giuseppe_walk.png",   1 };
@@ -17,7 +18,9 @@ public:
     Giuseppe(int fila, int col)
         : Pieza("Giuseppe", Bando::OSCURIDAD, TipoMovimiento::TERRESTRE,
                 fila, col, 150, 30, 7, 3, 1)
-    {}
+    {
+        escudoActivo = true;
+    }
 
  /*   void dibujar() override {
         float x = -4.5f + col * 1.0f + 0.5f;
@@ -95,9 +98,30 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
-        spriteActual = &spriteEspecial;
-        // Sus combates anulan habilidades del rival - se gestiona en Batalla
+    void habilidadEnBatalla() override {
+        // Se implementa en recibirDano, no aquí
+    }
+    void habilidadPostBatalla() override {
+        spriteActual = &spriteIdle;
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
+        // No tiene conjuros
+    }
+
+    void recibirDano(int dano) override {
+        if (escudoActivo && vidaActual - dano <= 0) {
+            vidaActual = 1;
+            escudoActivo = false;
+            spriteActual = &spriteEspecial;
+        }
+        else {
+            vidaActual -= dano;
+            if (vidaActual <= 0) {
+                vidaActual = 0;
+                estaViva = false;
+            }
+        }
     }
 
     // Batalla comprueba esto para saber si anular habilidades

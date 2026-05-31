@@ -20,7 +20,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     Veterano(int fila, int col)
         : Pieza("Veterano", Bando::LUZ, TipoMovimiento::TERRESTRE,
-            fila, col, 300, 30, 3, 3, 1)
+            fila, col, 300, 30, 2, 3, 1)
     {
         batallasGanadas = 0;
     }
@@ -92,11 +92,17 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
+    void habilidadPostBatalla() override {
         // Su ataque sube al ganar batallas
         batallasGanadas++;
-        ataque += 5;// lo que no le mata le hace mas fuerte
+        ataque += 10;// lo que no le mata le hace mas fuerte
         spriteActual = &spriteEspecial;
+    }
+    void habilidadEnBatalla() override {
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
     int getBatallasGanadas() const { return batallasGanadas; }

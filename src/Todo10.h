@@ -10,7 +10,9 @@
 
 class Todo10 : public Pieza {
 private:
-    bool habilidadUsada; // Solo copia una vez por batalla
+    int controlFallos;
+    int Aciertos;
+	int controlAciertos;
 
 public:
     mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/alumnos/todo10_idle1.png",  1 };
@@ -21,8 +23,10 @@ public:
 
     Todo10(int fila, int col)
         : Pieza("Todo10", Bando::LUZ, TipoMovimiento::VOLADOR,
-            fila, col, 250, 30, 5, 4, 3) {
-        habilidadUsada = false;
+            fila, col, 250, 30, 2, 4, 3) {
+        controlFallos = 0;
+		Aciertos = 0;
+		controlAciertos = 0;
     }
 
     /*void dibujar() override {
@@ -111,17 +115,26 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override { spriteActual = &spriteEspecial; }
-    // Para que Batalla pueda copiar las stats del rival
-    void copiarStats(Pieza* rival) {
-        if (!habilidadUsada && rival != nullptr) {
-            ataque = rival->getAtaque();
-            velocidad = rival->getVelocidad();
-            setAlcanceAtaque(rival->getAlcanceAtaque());
-            habilidadUsada = true;
-        }
+    void habilidadPostBatalla() override { 
+        spriteActual = &spriteIdle; 
+        ataque = 30;
     }
+    void habilidadEnBatalla() override {
+        Aciertos = contadorAtaques - contadorFallos;
+        if (Aciertos - controlAciertos == 1) {
+            ataque += 5;
+			spriteActual = &spriteEspecial;
+        }
+		if (contadorFallos - controlFallos == 1) {
+			ataque -= 5;
+			spriteActual = &spriteIdle;
+		}
+		controlAciertos = Aciertos;
+		controlFallos = contadorFallos;
 
-    bool getHabilidadUsada() const { return habilidadUsada; }
+    }
+    void conjuros() override {
+        // No tiene conjuros
+    }
 
 };

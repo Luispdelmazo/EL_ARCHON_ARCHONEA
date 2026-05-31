@@ -103,9 +103,14 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
+    void habilidadPostBatalla() override {
         spriteActual = &spriteEspecial;
         // Los conjuros se lanzan desde Juego con usarConjuro()
+    }
+    void habilidadEnBatalla() override {
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
     }
 
     bool puedeUsarConjuro(int indice) {

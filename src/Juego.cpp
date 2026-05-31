@@ -322,6 +322,7 @@ void Juego::gestionTeclado(unsigned char tecla, int x, int y) {
         if (tecla == 13) {
             //juegoTerminado = false;
             estadoActual   = EstadoJuego::MENU;
+			menu.setEstadoSeleccionado(EstadoMenu::PRINCIPAL);
             glutPostRedisplay();
         }
         return;
@@ -480,7 +481,7 @@ void Juego::terminarBatalla() {
         tablero.eliminarPieza(filaDestinoBatalla, colDestinoBatalla);
         tablero.eliminarPieza(filaAtacante, colAtacante);
     }
-    tablero.ActivarHabilidad(filaDestinoBatalla, colDestinoBatalla); 
+    tablero.HabilidadPostBatalla(filaDestinoBatalla, colDestinoBatalla); 
     // restaurar vida completa al ganador para la siguiente batalla
     //if (batalla.getEstado() == EstadoBatalla::GANA_ATACANTE && batalla.getAtacante() != nullptr)
        // batalla.getAtacante()->curar(9999);

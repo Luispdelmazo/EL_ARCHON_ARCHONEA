@@ -20,7 +20,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     Nocturno(int fila, int col)
         : Pieza("Nocturno", Bando::LUZ, TipoMovimiento::TERRESTRE,
-            fila, col, 250, 20, 5, 4, 2)
+            fila, col, 250, 20, 2, 4, 2)
     {
         velocidadDuplicada = false;
     }
@@ -97,12 +97,22 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
+    void habilidadEnBatalla() override {
         if (!velocidadDuplicada) {
-            velocidad         *= 2;// pico de adrenalina
+            velocidad = 4;// pico de adrenalina
             spriteActual = &spriteEspecial;
-            velocidadDuplicada = true;
+		}
+        else {
+			velocidad = 2; // velocidad normal
         }
+    }
+    void habilidadPostBatalla() override {
+        // No tiene habilidad post movimiento
+        spriteActual = &spriteIdle;
+        velocidadDuplicada = true;
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
     bool getVelocidadDuplicada() const { return velocidadDuplicada; }

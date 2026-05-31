@@ -10,7 +10,6 @@
 
 class Platero : public Pieza {
 private:
-    int turnosCombate; // Su alcance crece con los turnos
 
 public:
     mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/profesores/platero_idle1.png",  1 };
@@ -22,7 +21,7 @@ public:
         : Pieza("Platero", Bando::OSCURIDAD, TipoMovimiento::VOLADOR,
                 fila, col, 250, 30, 5, 4, 3)
     {
-        turnosCombate = 0;
+        contadorAtaques = 0;
     }
 
   /*  void dibujar() override {
@@ -106,12 +105,18 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
-        // La zona de dano crece con los turnos en combate
+    void habilidadEnBatalla() override {
+        // Sprite especifico para la batalla
         spriteActual = &spriteEspecial;
-        turnosCombate++;
-        alcanceAtaque += 1;
+    }
+    void habilidadPostBatalla() override {
+        alcanceAtaque += 1; // Aumenta su alcance de disparo cada vez que gana un combate
+		spriteActual = &spriteIdle;
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
-    int getTurnosCombate() const { return turnosCombate; }
+    //int getTurnosCombate() const { return turnosCombate; }
 };

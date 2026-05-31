@@ -19,7 +19,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     Imanol(int fila, int col)
         : Pieza("Imanol", Bando::OSCURIDAD, TipoMovimiento::TERRESTRE,
-                fila, col, 100, 20, 5, 3, 1)
+                fila, col, 100, 20, 2, 3, 1)
     {
         puedeParalizar = true;
     }
@@ -91,10 +91,16 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
+    void habilidadEnBatalla() override {
+    }
+    void habilidadPostBatalla() override {
+        ataque += 5;
+        vidaMax += 10;
+        velocidad += 1;
         spriteActual = &spriteEspecial;
-        // paraliza al rival - se gestiona desde Batalla
-        puedeParalizar = true;
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
     bool getPuedeParalizar() const { return puedeParalizar; }

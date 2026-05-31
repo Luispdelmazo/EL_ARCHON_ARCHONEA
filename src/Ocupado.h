@@ -10,7 +10,6 @@
 
 class Ocupado : public Pieza {
 private:
-    int contadorAtaques; // Cuenta los ataques para el dano doble
 
 public:
     mutable ETSIDI::SpriteSequence spriteIdle{ "imagenes/alumnos/ocupado_idle1.png",  1 };
@@ -20,7 +19,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     Ocupado(int fila, int col)
         : Pieza("Ocupado", Bando::LUZ, TipoMovimiento::VOLADOR,
-            fila, col, 200, 30, 5, 3, 2)
+            fila, col, 200, 30, 2, 3, 2)
     {
         contadorAtaques = 0;
     }
@@ -103,13 +102,25 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
-        contadorAtaques++;
+    void habilidadEnBatalla() override {
         // cada 5 ataques el siguiente es mas fuerte
-        if (contadorAtaques % 5 == 0) {
-            ataque *= 2;
+        if (contadorAtaques == 0) ataque = 30;
+        if ((contadorAtaques+1)% 5 == 0 && contadorAtaques > 0) {
             spriteActual = &spriteEspecial;
         }
+        else if (contadorAtaques % 5 == 0 && contadorAtaques > 0) {
+            ataque = 60;
+            spriteActual = &spriteIdle;
+        } else if((contadorAtaques-1) % 5 == 0 && contadorAtaques > 5) {
+            ataque = 30;
+        }
+    }
+    void habilidadPostBatalla() override {
+        // No tiene habilidad post movimiento
+        spriteActual = &spriteIdle;
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
     // Para que Batalla compruebe si toca dano doble

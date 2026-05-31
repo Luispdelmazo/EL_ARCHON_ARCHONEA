@@ -21,7 +21,7 @@ public:
     bool ataqueDoble = false;
     Ausente(int fila, int col)
         : Pieza("Ausente", Bando::LUZ, TipoMovimiento::TERRESTRE,
-            fila, col, 150, 30, 7, 3, 1)
+            fila, col, 150, 30, 3, 3, 1)
     {
         habilidadActivada = false;
     }
@@ -110,13 +110,20 @@ public:
         if (!ataqueDoble && vidaActual < vidaMax / 2) {
             ataque *= 2;
             ataqueDoble = true;
+            spriteActual = &spriteAtaque;
         }
     }
 
-    void habilidadEspecial() override {
+    void habilidadPostBatalla() override {
         spriteActual = &spriteEspecial;
         // Se activa automaticamente en recibirDano
     }
+	void habilidadEnBatalla() override {
+		// No tiene habilidad post movimiento
+	}
+	void conjuros() override {
+		// No tiene conjuros
+	}
 
     bool getHabilidadActivada() const { return habilidadActivada; }
 };

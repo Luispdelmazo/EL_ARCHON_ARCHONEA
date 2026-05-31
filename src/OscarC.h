@@ -20,7 +20,7 @@ public:
     mutable ETSIDI::SpriteSequence* spriteActual = &spriteIdle;
     OscarC(int fila, int col)
         : Pieza("OscarC", Bando::OSCURIDAD, TipoMovimiento::TERRESTRE,
-                fila, col, 250, 20, 5, 4, 2)
+                fila, col, 250, 20, 2, 4, 2)
     {
         batallasGanadas = 0;
         tamano          = 0.32f;
@@ -100,7 +100,7 @@ public:
         glPopMatrix();
     }
 
-    void habilidadEspecial() override {
+    void habilidadPostBatalla() override {
         // Sube stats al ganar una batalla
         batallasGanadas++;
         ataque    += 3;
@@ -109,6 +109,12 @@ public:
         velocidad += 1;
         tamano    += 0.04f; // Crece visualmente
         spriteActual = &spriteEspecial;
+    }
+    void habilidadEnBatalla() override {
+        // No tiene habilidad post movimiento
+    }
+    void conjuros() override {
+        // No tiene conjuros
     }
 
     int getBatallasGanadas() const { return batallasGanadas; }
