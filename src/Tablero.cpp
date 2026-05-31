@@ -1,0 +1,608 @@
+#include "Tablero.h"
+#include "ETSIDI.h"
+#include <cstdlib>
+
+void Tablero::cambiarColorOscilantes() {
+    colorOscilanteR = (float)(rand() % 100) / 100.0f;
+    colorOscilanteG = (float)(rand() % 100) / 100.0f;
+    colorOscilanteB = (float)(rand() % 100) / 100.0f;
+}
+
+// CONSTRUCTOR
+Tablero::Tablero(float tamCasilla, float ox, float oy)
+    : tamCasilla(tamCasilla), offsetX(ox), offsetY(oy)
+{
+    // Inicializar las dos matrices a nullptr
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            piezas[f][c] = nullptr;
+            casillas[f][c]  = nullptr;
+        }
+    }
+
+    // Posiciones de los 5 puntos de poder - igual que en el Archon original
+    puntosPoder[0][0] = 4; puntosPoder[0][1] = 4; // Centro
+    puntosPoder[1][0] = 0; puntosPoder[1][1] = 4; // Borde superior
+    puntosPoder[2][0] = 8; puntosPoder[2][1] = 4; // Borde inferior
+    puntosPoder[3][0] = 4; puntosPoder[3][1] = 0; // Borde izquierdo
+    puntosPoder[4][0] = 4; puntosPoder[4][1] = 8; // Borde derecho
+
+    // Color inicial aleatorio para las oscilantes
+    colorOscilanteR = (float)(rand() % 100) / 100.0f;
+    colorOscilanteG = (float)(rand() % 100) / 100.0f;
+    colorOscilanteB = (float)(rand() % 100) / 100.0f;
+
+    filaSeleccionada = -1;
+    colSeleccionada  = -1;
+    haySeleccion     = false;
+    filaTeclado = 4;
+	colTeclado = 0;
+    
+    filaDestinoIA = -1;
+    colDestinoIA = -1;
+    mostrarDestinoIA = false;
+
+    inicializarCasillas();
+}
+
+// DESTRUCTOR
+// Libera la memoria de las dos matrices - como destruir_contenido en el Pang
+Tablero::~Tablero() {
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            // Eliminar piezas
+            if (piezas[f][c] != nullptr) {
+                delete piezas[f][c];
+                piezas[f][c] = nullptr;
+            }
+            // Eliminar casillas - ahora son punteros
+            if (casillas[f][c] != nullptr) {
+                delete casillas[f][c];
+                casillas[f][c] = nullptr;
+            }
+        }
+    }
+}
+
+// INICIALIZAR CASILLAS
+// Ahora usamos new para crear cada tipo de casilla
+// Igual que en el Pang se creaban esferas con new Esfera(...)
+void Tablero::inicializarCasillas() {
+    // Patron de casillas oscilantes - forma de cruz/X
+    bool esOscilante[9][9] = {
+        {false,false,false,true ,true ,true ,false,false,false},
+        {false,false,true ,false,true ,false,true ,false,false},
+        {false,true ,false,false,true ,false,false,true ,false},
+        {true ,false,false,false,true ,false,false,false,true },
+        {false,true ,true ,true ,true ,true ,true ,true ,false},
+        {true ,false,false,false,true ,false,false,false,true },
+        {false,true ,false,false,true ,false,false,true ,false},
+        {false,false,true ,false,true ,false,true ,false,false},
+        {false,false,false,true ,true ,true ,false,false,false}
+    };
+
+    // Saber si es punto de poder
+    bool esPuntoPoder[9][9] = {};
+    for (int i = 0; i < 5; i++) {
+        esPuntoPoder[puntosPoder[i][0]][puntosPoder[i][1]] = true;
+    }
+
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            EstadoCasilla estadoInicial;
+            if ((f + c) % 2 == 0) {
+				if (c < 4) {
+					estadoInicial = EstadoCasilla::CLARA;
+				}
+				else {
+					estadoInicial = EstadoCasilla::OSCURA;
+				}
+            }
+            else {
+                if (c < 4) {
+                    estadoInicial = EstadoCasilla::OSCURA;
+                }
+                else {
+                    estadoInicial = EstadoCasilla::CLARA;
+                }
+            }
+
+            // Crear el tipo de casilla correcto con new
+            // Polimorfismo igual que en el Pang con Esfera y EsferaPulsante
+            if (esPuntoPoder[f][c]) {
+                casillas[f][c] = new PuntoDePoder(estadoInicial);
+            } else if (esOscilante[f][c]) {
+                casillas[f][c] = new CasillaOscilante(estadoInicial, 5.0f);
+            } else {
+                casillas[f][c] = new Casilla(TipoCasilla::NORMAL, estadoInicial);
+            }
+        }
+    }
+}
+
+// DIBUJAR
+// Recibe el turno actual para colorear el marco
+void Tablero::dibujar(Bando turno) {
+    // 1. Dibujar todos los sprites primero
+    for (int f = 0; f < 9; f++)
+        for (int c = 0; c < 9; c++)
+            if (piezas[f][c] != nullptr && piezas[f][c]->getEstaViva())
+                piezas[f][c]->dibujar();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-5.0, 5.0, -5.0, 5.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_LIGHTING);
+
+    dibujarMarco(turno);
+    dibujarCasillas();
+    dibujarPuntosDePoder();
+    dibujarSeleccion();
+}
+
+
+// DIBUJAR SELECCION
+// Circulo verde donde puede ir, cruz roja donde no puede
+void Tablero::dibujarSeleccion() {
+    if (!haySeleccion) return;
+
+    // Borde amarillo en la pieza seleccionada
+    float x = offsetX + colSeleccionada * tamCasilla;
+    float y = offsetY + filaSeleccionada * tamCasilla;
+
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glLineWidth(3.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(x,              y,              0.1f);
+    glVertex3f(x + tamCasilla, y,              0.1f);
+    glVertex3f(x + tamCasilla, y + tamCasilla, 0.1f);
+    glVertex3f(x,              y + tamCasilla, 0.1f);
+    glEnd();
+    glLineWidth(1.0f);
+
+    // Para cada casilla dibujamos circulo verde o cruz roja
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (f == filaSeleccionada && c == colSeleccionada) continue;
+
+            // No marcamos casillas con aliados
+            if (piezas[f][c] != nullptr && piezas[filaSeleccionada][colSeleccionada] != nullptr &&
+                piezas[f][c]->getBando() == piezas[filaSeleccionada][colSeleccionada]->getBando()) continue;
+
+            float cx = offsetX + c * tamCasilla + tamCasilla * 0.5f;
+            float cy = offsetY + f * tamCasilla  + tamCasilla * 0.5f;
+
+            if (destinoEsValido(f, c)) {
+                // CIRCULO VERDE - puede moverse aqui
+                glColor3f(0.0f, 0.9f, 0.0f);
+                float radio = tamCasilla * 0.3f;
+                glBegin(GL_POLYGON);
+                for (int i = 0; i < 12; i++) {
+                    float angulo = i * 2.0f * 3.14159f / 12.0f;
+                    glVertex3f(cx + radio * cosf(angulo),
+                               cy + radio * sinf(angulo),
+                               0.1f);
+                }
+                glEnd();
+            } else {
+                // CRUZ ROJA  no puede moverse aqui
+                float tam = tamCasilla * 0.25f;
+                glColor3f(0.9f, 0.0f, 0.0f);
+                glLineWidth(2.0f);
+                glBegin(GL_LINES);
+                glVertex3f(cx - tam, cy - tam, 0.1f);
+                glVertex3f(cx + tam, cy + tam, 0.1f);
+                glVertex3f(cx + tam, cy - tam, 0.1f);
+                glVertex3f(cx - tam, cy + tam, 0.1f);
+                glEnd();
+                glLineWidth(1.0f);
+            }
+        }
+    }
+}
+
+// DIBUJAR MARCO
+// Amarillo si es turno de LUZ, morado si es de OSCURIDAD
+void Tablero::dibujarMarco(Bando turno) {
+    if (turno == Bando::LUZ) {
+        glColor3f(1.0f, 0.85f, 0.0f);
+    } else {
+        glColor3f(0.5f, 0.0f, 0.8f);
+    }
+
+    float margen = 0.3f;
+    float x0 = offsetX - margen;
+    float y0 = offsetY - margen;
+    float x1 = offsetX + 9.0f * tamCasilla + margen;
+    float y1 = offsetY + 9.0f * tamCasilla + margen;
+
+    glBegin(GL_QUADS);
+    glVertex3f(x0, y0, -0.01f);
+    glVertex3f(x1, y0, -0.01f);
+    glVertex3f(x1, y1, -0.01f);
+    glVertex3f(x0, y1, -0.01f);
+    glEnd();
+}
+
+// DIBUJAR CASILLAS
+// Usamos tablero[f][c]->getTipo() con puntero - polimorfismo
+void Tablero::dibujarCasillas() {
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (casillas[f][c] == nullptr) continue;
+
+            float x = offsetX + c * tamCasilla;
+            float y = offsetY + f * tamCasilla;
+
+            if (casillas[f][c]->getTipo() == TipoCasilla::OSCILANTE) {
+                glColor3f(colorOscilanteR, colorOscilanteG, colorOscilanteB);
+            } else {
+                if (casillas[f][c]->getEstado() == EstadoCasilla::CLARA) {
+                    glColor3f(0.95f, 0.95f, 0.95f);
+                } else {
+                    glColor3f(0.08f, 0.08f, 0.08f);
+                }
+            }
+
+            glBegin(GL_QUADS);
+            glVertex3f(x,              y,              0.0f);
+            glVertex3f(x + tamCasilla, y,              0.0f);
+            glVertex3f(x + tamCasilla, y + tamCasilla, 0.0f);
+            glVertex3f(x,              y + tamCasilla, 0.0f);
+            glEnd();
+
+            // Linea negra fina de separacion
+            glColor3f(0.0f, 0.0f, 0.0f);
+            glBegin(GL_LINE_LOOP);
+            glVertex3f(x,              y,              0.01f);
+            glVertex3f(x + tamCasilla, y,              0.01f);
+            glVertex3f(x + tamCasilla, y + tamCasilla, 0.01f);
+            glVertex3f(x,              y + tamCasilla, 0.01f);
+            glEnd();
+
+            
+        }
+    }
+
+    float xTeclado = offsetX + colTeclado * tamCasilla;
+    float yTeclado = offsetY + filaTeclado * tamCasilla;
+    //Línea naranja fina para marcar la casilla posicionada para teclado
+    glColor3f(1.0f, 0.5f, 0.0f);
+    glLineWidth(2.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(xTeclado, yTeclado, 0.02f);
+    glVertex3f(xTeclado + tamCasilla, yTeclado, 0.02f);
+    glVertex3f(xTeclado + tamCasilla, yTeclado + tamCasilla, 0.02f);
+    glVertex3f(xTeclado, yTeclado + tamCasilla, 0.02f);
+    glEnd();
+    
+    if (mostrarDestinoIA) {
+        float xDest = offsetX + colDestinoIA * tamCasilla;
+        float yDest = offsetY + filaDestinoIA * tamCasilla;
+        glColor3f(0.8f, 0.0f, 0.8f); // morado para el destino IA
+        glLineWidth(3.0f);
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(xDest, yDest, 0.02f);
+        glVertex3f(xDest + tamCasilla, yDest, 0.02f);
+        glVertex3f(xDest + tamCasilla, yDest + tamCasilla, 0.02f);
+        glVertex3f(xDest, yDest + tamCasilla, 0.02f);
+        glEnd();
+        glLineWidth(1.0f);
+    }
+}
+
+// DIBUJAR PUNTOS DE PODER
+// Cruz verde encima de la casilla
+void Tablero::dibujarPuntosDePoder() {
+    glColor3f(0.0f, 0.8f, 0.0f);
+
+    for (int i = 0; i < 5; i++) {
+        int f = puntosPoder[i][0];
+        int c = puntosPoder[i][1];
+
+        float x  = offsetX + c * tamCasilla;
+        float y  = offsetY + f * tamCasilla;
+        float cx = x + tamCasilla * 0.5f;
+        float cy = y + tamCasilla * 0.5f;
+        float grosor = tamCasilla * 0.15f;
+        float largo  = tamCasilla * 0.4f;
+
+        // Brazo horizontal
+        glBegin(GL_QUADS);
+        glVertex3f(cx - largo, cy - grosor, 0.01f);
+        glVertex3f(cx + largo, cy - grosor, 0.01f);
+        glVertex3f(cx + largo, cy + grosor, 0.01f);
+        glVertex3f(cx - largo, cy + grosor, 0.01f);
+        glEnd();
+
+        // Brazo vertical
+        glBegin(GL_QUADS);
+        glVertex3f(cx - grosor, cy - largo, 0.01f);
+        glVertex3f(cx + grosor, cy - largo, 0.01f);
+        glVertex3f(cx + grosor, cy + largo, 0.01f);
+        glVertex3f(cx - grosor, cy + largo, 0.01f);
+        glEnd();
+    }
+}
+
+// GESTION DE PIEZAS
+void Tablero::colocarPieza(Pieza* pieza, int fila, int col) {
+    if (fila < 0 || fila >= 9 || col < 0 || col >= 9) return;
+    if (piezas[fila][col] != nullptr) return;
+
+    piezas[fila][col] = pieza;
+    pieza->setPosicion(fila, col);
+    casillas[fila][col]->setOcupada(true);
+}
+
+bool Tablero::moverPieza(int filaOrigen, int colOrigen, int filaDest, int colDest) {
+    if (filaOrigen < 0 || filaOrigen >= 9 || colOrigen < 0 || colOrigen >= 9) return false;
+    if (filaDest < 0 || filaDest >= 9 || colDest < 0 || colDest >= 9) return false;
+
+    Pieza* pieza = piezas[filaOrigen][colOrigen];
+    if (pieza == nullptr) return false;
+
+    Pieza* piezaDestino = piezas[filaDest][colDest];
+    if (piezaDestino != nullptr && piezaDestino->getBando() == pieza->getBando()) {
+        return false;
+    }
+
+    // Primero actualizamos el estado de las casillas
+    casillas[filaOrigen][colOrigen]->setOcupada(false);
+    casillas[filaDest][colDest]->setOcupada(true);
+
+    // Luego movemos la pieza
+    piezas[filaOrigen][colOrigen] = nullptr;
+    piezas[filaDest][colDest] = pieza;
+    pieza->setPosicion(filaDest, colDest);
+
+    return true;
+}
+
+bool Tablero::hayEnemigo(int fila, int col, Bando bandoActual) {
+    if (piezas[fila][col] == nullptr) return false;
+    return piezas[fila][col]->getBando() != bandoActual;
+}
+
+void Tablero::eliminarPieza(int fila, int col) {
+    if (piezas[fila][col] != nullptr) {
+        delete piezas[fila][col];
+        piezas[fila][col] = nullptr;
+    }
+}
+
+// CALCULAR MOVIMIENTO IA
+// Evalua todas las piezas de OSCURIDAD y elige el mejor movimiento
+// Puntuacion: capturar punto de poder (100), atacar enemigo (50),
+//             avanzar hacia la izquierda (3 por columna), acercarse a punto de poder (10)
+bool Tablero::calcularMovimientoIA(int& filaOrigen, int& colOrigen, int& filaDest, int& colDest) {
+    int mejorPuntuacion = -9999;
+    bool encontrado = false;
+
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (piezas[f][c] == nullptr) continue;
+            if (piezas[f][c]->getBando() != Bando::OSCURIDAD) continue;
+            if (!piezas[f][c]->getEstaViva()) continue;
+
+            // Calcular casillas validas para esta pieza
+            bool ocupadas[9][9] = {};
+            bool enemigas[9][9] = {};
+            for (int ff = 0; ff < 9; ff++)
+                for (int cc = 0; cc < 9; cc++)
+                    if (piezas[ff][cc] != nullptr) {
+                        ocupadas[ff][cc] = true;
+                        if (piezas[ff][cc]->getBando() != Bando::OSCURIDAD)
+                            enemigas[ff][cc] = true;
+                    }
+
+            std::vector<Coord> validas = piezas[f][c]->getCasillasValidas(ocupadas, enemigas);
+
+            for (int i = 0; i < (int)validas.size(); i++) {
+                int fd = validas[i].fila;
+                int cd = validas[i].col;
+                int puntos = 0;
+
+                // Capturar punto de poder
+                for (int p = 0; p < 5; p++) {
+                    if (fd == puntosPoder[p][0] && cd == puntosPoder[p][1]) {
+                        puntos += 100;
+                    }
+                }
+
+                // Atacar enemigo
+                if (piezas[fd][cd] != nullptr && piezas[fd][cd]->getBando() == Bando::LUZ) {
+                    puntos += 50;
+                }
+
+                // Avanzar hacia la izquierda (col mas pequeña = mejor para OSCURIDAD)
+                puntos += (8 - cd) * 3;
+
+                // Acercarse a punto de poder mas cercano
+                int distMin = 9999;
+                for (int p = 0; p < 5; p++) {
+                    int dist = abs(fd - puntosPoder[p][0]) + abs(cd - puntosPoder[p][1]);
+                    if (dist < distMin) distMin = dist;
+                }
+                puntos += (16 - distMin) * 2;
+
+                // Aleatoriedad para que no sea robotico
+                puntos += rand() % 15;
+
+                if (puntos > mejorPuntuacion) {
+                    mejorPuntuacion = puntos;
+                    filaOrigen = f;
+                    colOrigen = c;
+                    filaDest = fd;
+                    colDest = cd;
+                    encontrado = true;
+                }
+            }
+        }
+    }
+    return encontrado;
+}
+
+// CONDICIONES DE VICTORIA
+bool Tablero::controlaPuntosDePoder(Bando bando) {
+    for (int i = 0; i < 5; i++) {
+        int f = puntosPoder[i][0];
+        int c = puntosPoder[i][1];
+        Pieza* pieza = piezas[f][c];
+        if (pieza == nullptr || pieza->getBando() != bando) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int Tablero::contarPiezas(Bando bando) {
+    int total = 0;
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (piezas[f][c] != nullptr && piezas[f][c]->getBando() == bando) {
+                total++;
+            }
+        }
+    }
+    return total;
+}
+
+// ACTUALIZACION
+// Llamamos a actualizar() de cada casilla - polimorfismo en accion
+// El tablero no sabe si es CasillaOscilante o PuntoDePoder, solo llama a actualizar()
+void Tablero::actualizar(float dt) {
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (casillas[f][c] != nullptr) {
+                casillas[f][c]->actualizar(dt);
+            }
+        }
+    }
+
+    // Bonus de curacion para las piezas segun la casilla en la que estan
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (casillas[f][c] != nullptr && piezas[f][c] != nullptr) {
+                float bonus = casillas[f][c]->getBonusCuracion(piezas[f][c]->getBando());
+                if (bonus > 0.0f) {
+                    piezas[f][c]->curar((int)(bonus * dt));
+                }
+            }
+        }
+    }
+    // Animar sprites de todas las piezas
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (piezas[f][c] != nullptr && piezas[f][c]->getEstaViva()) {
+                piezas[f][c]->loop();
+            }
+        }
+    }
+}
+
+Pieza* Tablero::getPieza(int fila, int col) {
+    if (fila < 0 || fila >= 9 || col < 0 || col >= 9) return nullptr;
+    return piezas[fila][col];
+}
+
+Casilla* Tablero::getCasilla(int fila, int col) {
+    if (fila < 0 || fila >= 9 || col < 0 || col >= 9) return nullptr;
+    return casillas[fila][col];
+}
+
+float Tablero::getTamCasilla() const { return tamCasilla; }
+float Tablero::getOffsetX()    const { return offsetX; }
+float Tablero::getOffsetY()    const { return offsetY; }
+
+bool Tablero::pantallaATablero(float px, float py, int& filaOut, int& colOut) {
+    colOut  = (int)((px - offsetX) / tamCasilla);
+    filaOut = (int)((py - offsetY) / tamCasilla);
+
+    if (filaOut < 0 || filaOut >= 9 || colOut < 0 || colOut >= 9) {
+        return false;
+    }
+    return true;
+}
+
+// SELECCION DE PIEZAS
+
+void Tablero::seleccionarPieza(int fila, int col, Bando turno) {
+    Pieza* pieza = piezas[fila][col];
+    if (pieza == nullptr || pieza->getBando() != turno) return;
+
+    filaSeleccionada = fila;
+    colSeleccionada = col;
+    haySeleccion = true;
+
+    // Debe actualizarse la posición por teclado para que coincida con la seleccionada
+    // Se evita mostrar 2 casillas seleccionadas a la vez (la de teclado y la elegida por ratón)
+    // En caso de deselección se podrá mover con el teclado 
+    filaTeclado = fila;
+	colTeclado = col;
+
+    // Solo marcamos ocupadas las casillas con piezas del mismo bando para que getCasillasValidas sepa donde no puede ir
+    bool ocupadas[9][9] = {};
+	bool enemigas[9][9] = {};
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (piezas[f][c] != nullptr) {
+                ocupadas[f][c] = true;
+				if (piezas[f][c]->getBando() != pieza->getBando()) {
+					enemigas[f][c] = true; // Marcamos casillas con enemigos
+				}
+            }
+        }
+    }
+    casillasValidas = pieza->getCasillasValidas(ocupadas, enemigas);
+}
+
+
+
+void Tablero::deseleccionar() {
+    haySeleccion     = false;
+    filaSeleccionada = -1;
+    colSeleccionada  = -1;
+    casillasValidas.clear();
+}
+
+bool Tablero::destinoEsValido(int fila, int col) {
+    for (int i = 0; i < casillasValidas.size(); i++) {
+        if (casillasValidas[i].fila == fila && casillasValidas[i].col == col) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Tablero::moverPiezaSeleccionada(int filaDest, int colDest) {
+    return moverPieza(filaSeleccionada, colSeleccionada, filaDest, colDest);
+}
+
+bool Tablero::tieneSeleccion() const { return haySeleccion; }
+int  Tablero::getFilaSeleccionada() const { return filaSeleccionada; }
+int  Tablero::getColSeleccionada()  const { return colSeleccionada; }
+
+void Tablero::gestionTeclado(unsigned char tecla, Bando turnoActual) {
+	if (tecla == 'w' || tecla == 'W') {
+        if (filaTeclado < 8) filaTeclado++;
+	}
+	else if (tecla == 's' || tecla == 'S') {
+        if (filaTeclado > 0) filaTeclado--;
+	}
+	else if (tecla == 'a' || tecla == 'A') {
+		if (colTeclado > 0) colTeclado--;
+	}
+	else if (tecla == 'd' || tecla == 'D') {
+		if (colTeclado < 8) colTeclado++;
+	}
+}
+
+void Tablero::HabilidadPostBatalla(int fila, int col) {
+    Pieza* pieza = piezas[fila][col];
+    if (pieza == nullptr) return;
+    pieza->habilidadPostBatalla();
+}
